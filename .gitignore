@@ -1,0 +1,13 @@
+# Java and gradle files
+*.class
+.gradle
+bin/
+build/
+
+# IDEs
+.idea/
+.vscode/
+
+# nix/direnv
+.direnv/
+.pre-commit-config.yaml
