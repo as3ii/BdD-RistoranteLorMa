@@ -10,6 +10,8 @@ plugins {
 }
 
 dependencies {
+    // mysql connector
+    implementation("com.mysql:mysql-connector-j:9.3.0")
     // Use JUnit Jupiter for testing.
     val junitVersion = "5.13.1"
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
