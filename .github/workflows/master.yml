@@ -86,4 +86,4 @@ jobs:
           purge-last-accessed: 0
           purge-primary-key: never
       - name: Flake check
-        run: nix flake check --all-systems
+        run: nix flake check --all-systems -L
