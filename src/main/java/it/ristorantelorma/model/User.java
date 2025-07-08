@@ -1,8 +1,16 @@
 package it.ristorantelorma.model;
 
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import it.ristorantelorma.controller.SimpleLogger;
 
 /**
  * Represent an entry in the USERS table of the database.
@@ -188,5 +196,136 @@ public final class User {
     /**
      * Inner class that handles requests to the database.
      */
-    public static final class DAO { }
+    public static final class DAO {
+        private static final String CLASS_NAME = DAO.class.getName();
+        private static final Logger LOGGER = SimpleLogger.getLogger(CLASS_NAME);
+        private static final BigDecimal DEFAULT_CREDIT = new BigDecimal(20);
+
+        private DAO() {
+            throw new UnsupportedOperationException("Utility class and cannot be instantiated");
+        }
+
+        /**
+         * Insert a new User in the database.
+         * If Role is Role.CLIENT then the new User have a credit of DEFAULT_CREDIT
+         * @param connection
+         * @param name
+         * @param surname
+         * @param username
+         * @param password      the password MUST be encrypted beforehand
+         * @param phone
+         * @param email
+         * @param city
+         * @param street
+         * @param houseNumber
+         * @param role
+         * @return the User if it has been correctly added, error otherwise
+         */
+        public static Result<User> insert(
+            final Connection connection, final String name, final String surname,
+            final String username, final String password, final String phone,
+            final String email, final String city, final String street,
+            final String houseNumber, final Role role
+        ) {
+            final Result<Optional<User>> user;
+            try {
+                user = find(connection, username);
+            } catch (IllegalArgumentException e) {
+                // Error already logged, just return the error
+                return Result.failure("Error while checking if exists a user with username: " + username);
+            }
+
+            if (!user.isSuccess()) {
+                // Propagate the error
+                return Result.failure(user.getErrorMessage());
+            }
+            if (user.getValue().isPresent()) {
+                final String errorMessage = "User '" + username + "' not inserted, it already exists";
+                LOGGER.log(Level.WARNING, errorMessage);
+                return Result.failure(errorMessage);
+            }
+
+            BigDecimal credit = null;
+            if (role == Role.CLIENT) {
+                credit = DEFAULT_CREDIT;
+            }
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection, Queries.INSERT_USER,
+                    name, surname, username, password, phone, email, city,
+                    street, houseNumber, credit, role
+                );
+            ) {
+                final int rows = statement.executeUpdate();
+                if (rows < 1) {
+                    final String errorMessage = "Failed user insertion, no rows added";
+                    LOGGER.log(Level.SEVERE, errorMessage);
+                    return Result.failure(errorMessage);
+                } else {
+                    return Result.success(new User(
+                        name, surname, username, password, phone, email, city,
+                        street, houseNumber, Optional.ofNullable(credit), role
+                    ));
+                }
+            } catch (SQLException e) {
+                final String errorMessage = "Failed insertion of user: " + username;
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Find a User by its username.
+         * @param connection
+         * @param username
+         * @return Optional.of(User) if it was found, Optional.empty() if no User was found, error message otherwise
+         * @throws IllegalArgumentException if an invalid role enum is returned from the query
+         */
+        public static Result<Optional<User>> find(final Connection connection, final String username) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(connection, Queries.FIND_USER, username);
+                ResultSet result = statement.executeQuery();
+            ) {
+                if (result.next()) {
+                    final String name = result.getString("nome");
+                    final String surname = result.getString("cognome");
+                    final String password = result.getString("password");
+                    final String phone = result.getString("telefono");
+                    final String email = result.getString("email");
+                    final String city = result.getString("città");
+                    final String street = result.getString("via");
+                    final String houseNumber = result.getString("n_civico");
+                    final Optional<BigDecimal> credit = Optional.ofNullable(result.getBigDecimal("credito"));
+                    final String roleStr = result.getString("ruolo");
+                    final Role role;
+                    switch (roleStr) {
+                        case "admin":
+                            role = Role.ADMIN;
+                            break;
+                        case "ristorante":
+                            role = Role.RESTAURANT;
+                            break;
+                        case "cliente":
+                            role = Role.CLIENT;
+                            break;
+                        case "fattorino":
+                            role = Role.DELIVERYMAN;
+                            break;
+                        default:
+                            LOGGER.log(Level.SEVERE, "Invalid role value: " + roleStr);
+                            throw new IllegalArgumentException("Invalid role value: " + roleStr);
+                    }
+                    return Result.success(Optional.of(new User(
+                        name, surname, username, password, phone, email, city, street, houseNumber, credit, role
+                    )));
+                } else {
+                    return Result.success(Optional.empty());
+                }
+            } catch (SQLException e) {
+                final String errorMessage = "Failed research of User: " + username;
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+    }
 }
