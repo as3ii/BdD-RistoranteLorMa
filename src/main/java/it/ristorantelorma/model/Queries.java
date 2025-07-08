@@ -24,6 +24,40 @@ public final class Queries {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """;
 
+    /**
+     * Find a Restaurant by its name.
+     */
+    public static final String FIND_RESTAURANT_BY_NAME =
+        """
+        SELECT * FROM RISTORANTI WHERE nome_attività = ?;
+        """;
+
+    /**
+     * Find a Restaurant by its owner username.
+     */
+    public static final String FIND_RESTAURANT_BY_USERNAME =
+        """
+        SELECT * FROM RISTORANTI WHERE username = ?;
+        """;
+
+    /**
+     * Insert a new Restaurant.
+     */
+    public static final String INSERT_RESTAURANT =
+        """
+        INSERT INTO RISTORANTI
+        (username, nome_attività, p_va, ora_apertura, ora_chiusura)
+        VALUES (?, ?, ?, ?, ?)
+        """;
+
+    /**
+     * List all Restaurants.
+     */
+    public static final String LIST_RESTAURANTS =
+        """
+        SELECT * FROM RISTORANTI;
+        """;
+
     private Queries() {
         throw new UnsupportedOperationException("Utility class and cannot be instantiated");
     }
