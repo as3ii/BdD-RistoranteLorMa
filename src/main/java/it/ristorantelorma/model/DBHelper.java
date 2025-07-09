@@ -3,6 +3,7 @@ package it.ristorantelorma.model;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Helper class, used to simplify interaction with the database.
@@ -25,7 +26,7 @@ public final class DBHelper {
     ) throws SQLException {
         PreparedStatement statement = null;
         try {
-            statement = connection.prepareStatement(query);
+            statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             for (int i = 0; i < objects.length; i++) {
                 statement.setObject(i + 1, objects[i]);
             }

@@ -84,6 +84,43 @@ public final class Queries {
         SELECT * FROM TIPO_VIVANDE;
         """;
 
+    /**
+     * Find a Food based on its name and the Restaurant name.
+     */
+    public static final String FIND_FOOD_BY_NAME =
+        """
+        SELECT * FROM VIVANDE
+        WHERE nome = ? AND nome_attività = ?;
+        """;
+
+    /**
+     * Find a Food based on its ID.
+     */
+    public static final String FIND_FOOD_BY_ID =
+        """
+        SELECT * FROM VIVANTE
+        WHERE id = ?;
+        """;
+
+    /**
+     * Insert a new Food.
+     */
+    public static final String INSERT_FOOD =
+        """
+        INSERT INTO VIVANDE
+        (nome, nome_attività, prezzo, tipologia)
+        VALUES (?, ?, ?, ?);
+        """;
+
+    /**
+     * List all foods of a Restaurant.
+     */
+    public static final String LIST_FOODS =
+        """
+        SELECT * FROM VIVANDE
+        WHERE nome_attività = ?;
+        """;
+
     private Queries() {
         throw new UnsupportedOperationException("Utility class and cannot be instantiated");
     }

@@ -1,7 +1,18 @@
 package it.ristorantelorma.model;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import it.ristorantelorma.controller.SimpleLogger;
 
 /**
  * Represent an entry in the FOODS table of the database.
@@ -106,5 +117,214 @@ public final class Food {
     /**
      * Inner class that handles requests to the database.
      */
-    public static final class DAO { }
+    public static final class DAO {
+        private static final String CLASS_NAME = DAO.class.getName();
+        private static final Logger LOGGER = SimpleLogger.getLogger(CLASS_NAME);
+
+        private DAO() {
+            throw new UnsupportedOperationException("Utility class and cannot be instantiated");
+        }
+
+        /**
+         * Find in the database the Food with the given name and serverd by the given Restaurant.
+         * @param connection
+         * @param name
+         * @param restaurant
+         * @return Optional.of(Food) if it exists, Optional.empty() if no Food was found, error otherwise
+         * @throws IllegalStateException if the Food searched exists but the linked FoodType no.
+         */
+        public static Result<Optional<Food>> find(
+            final Connection connection, final String name, final Restaurant restaurant
+        ) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection, Queries.FIND_FOOD_BY_NAME,
+                    name, restaurant.getRestaurantName()
+                );
+                ResultSet result = statement.executeQuery();
+            ) {
+                if (result.next()) {
+                    final String typeStr = result.getString("tipologia");
+                    final Result<Optional<FoodType>> tmpType = FoodType.DAO.find(connection, typeStr);
+                    if (!tmpType.isSuccess()) {
+                        // Propagate the error
+                        return Result.failure(tmpType.getErrorMessage());
+                    }
+                    if (!tmpType.getValue().isPresent()) {
+                        final String errorMessage = "The Food have an invalid FoodType: " + typeStr;
+                        LOGGER.log(Level.SEVERE, errorMessage);
+                        throw new IllegalStateException(errorMessage);
+                    }
+
+                    final FoodType type = tmpType.getValue().get();
+                    final int id = result.getInt("codice");
+                    final BigDecimal price = result.getBigDecimal("prezzo");
+                    return Result.success(Optional.of(
+                        new Food(id, name, restaurant, price, type)
+                    ));
+                } else {
+                    return Result.success(Optional.empty());
+                }
+            } catch (SQLException e) {
+                final String errorMessage = "Failed research of Food: " + name;
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Find in the database the Food with the given id.
+         * @param connection
+         * @param id
+         * @return Optional.of(Food) if it exists, Optional.empty() if no Food was found, error otherwise
+         * @throws IllegalStateException if the Food searched exists but the linked FoodType no.
+         */
+        public static Result<Optional<Food>> find(final Connection connection, final int id) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(connection, Queries.FIND_FOOD_BY_ID, id);
+                ResultSet result = statement.executeQuery();
+            ) {
+                if (result.next()) {
+                    final String typeStr = result.getString("tipologia");
+                    final Result<Optional<FoodType>> tmpType = FoodType.DAO.find(connection, typeStr);
+                    if (!tmpType.isSuccess()) {
+                        // Propagate the error
+                        return Result.failure(tmpType.getErrorMessage());
+                    }
+                    if (!tmpType.getValue().isPresent()) {
+                        final String errorMessage = "The Food have an invalid FoodType: " + typeStr;
+                        LOGGER.log(Level.SEVERE, errorMessage);
+                        throw new IllegalStateException(errorMessage);
+                    }
+                    final FoodType type = tmpType.getValue().get();
+
+                    final String restaurantStr = result.getString("nome_attività");
+                    final Result<Optional<Restaurant>> tmpRestaurant = Restaurant.DAO.find(
+                        connection, restaurantStr
+                    );
+                    if (!tmpRestaurant.isSuccess()) {
+                        // Propagate the error
+                        return Result.failure(tmpRestaurant.getErrorMessage());
+                    }
+                    if (!tmpRestaurant.getValue().isPresent()) {
+                        final String errorMessage = "The Food have an invalid Restaurant name: " + restaurantStr;
+                        LOGGER.log(Level.SEVERE, errorMessage);
+                        throw new IllegalStateException(errorMessage);
+                    }
+                    final Restaurant restaurant = tmpRestaurant.getValue().get();
+
+                    final String name = result.getString("nome");
+                    final BigDecimal price = result.getBigDecimal("prezzo");
+                    return Result.success(Optional.of(
+                        new Food(id, name, restaurant, price, type)
+                    ));
+                } else {
+                    return Result.success(Optional.empty());
+                }
+            } catch (SQLException e) {
+                final String errorMessage = "Failed research of Food with ID: " + id;
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Insert a new Food in the database.
+         * @param connection
+         * @param name
+         * @param restaurant
+         * @param price
+         * @param type
+         * @return the Food if it has been correctly added, empty otherwise
+         */
+        public static Result<Food> insert(
+            final Connection connection, final String name, final Restaurant restaurant,
+            final BigDecimal price, final FoodType type
+        ) {
+            final Result<Optional<Food>> food = find(connection, name, restaurant);
+
+            if (!food.isSuccess()) {
+                // Propagate the error
+                return Result.failure(food.getErrorMessage());
+            }
+            if (food.getValue().isPresent()) {
+                final String errorMessage = "Food '" + name + "' (" + restaurant.getRestaurantName()
+                    + ") not inserted, it already exists";
+                LOGGER.log(Level.WARNING, errorMessage);
+                return Result.failure(errorMessage);
+            }
+
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection, Queries.INSERT_FOOD,
+                    name, restaurant.getRestaurantName(), price, type
+                );
+            ) {
+                final int rows = statement.executeUpdate();
+                if (rows < 1) {
+                    final String errorMessage = "Failed food insertion, no rows added";
+                    LOGGER.log(Level.SEVERE, errorMessage);
+                    return Result.failure(errorMessage);
+                } else {
+                    try (ResultSet keys = statement.getGeneratedKeys()) {
+                        if (keys.next()) {
+                            final int id = keys.getInt("codice");
+                            return Result.success(
+                                new Food(id, name, restaurant, price, type)
+                            );
+                        } else {
+                            final String errorMessage =
+                                "Insertion of Food seams complete but the retrival of the record ID failed";
+                            LOGGER.log(Level.SEVERE, errorMessage);
+                            throw new IllegalStateException(errorMessage);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                final String errorMessage = "Failed insertion of food: " + name + " - " + restaurant.getRestaurantName();
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Lists all Foods served by the given Restaurant.
+         * @param connection
+         * @param restaurant
+         * @return a Set<Restaurant> if there are no error
+         * @throws IllegalStateException if one Food have a non-existent linked FoodType.
+         */
+        public static Result<Set<Food>> list(final Connection connection, final Restaurant restaurant) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(connection, Queries.LIST_FOODS, restaurant.getRestaurantName());
+                ResultSet result = statement.executeQuery();
+            ) {
+                final Set<Food> foods = new HashSet<>();
+                while (result.next()) {
+                    final String typeStr = result.getString("tipologia");
+                    final Result<Optional<FoodType>> tmpType = FoodType.DAO.find(connection, typeStr);
+                    if (!tmpType.isSuccess()) {
+                        // Propagate the error
+                        return Result.failure(tmpType.getErrorMessage());
+                    }
+                    if (!tmpType.getValue().isPresent()) {
+                        final String errorMessage = "The Food have an invalid FoodType: " + typeStr;
+                        LOGGER.log(Level.SEVERE, errorMessage);
+                        throw new IllegalStateException(errorMessage);
+                    }
+
+                    final String name = result.getString("nome");
+                    final FoodType type = tmpType.getValue().get();
+                    final int id = result.getInt("codice");
+                    final BigDecimal price = result.getBigDecimal("prezzo");
+                    foods.add(new Food(id, name, restaurant, price, type));
+                }
+                return Result.success(foods);
+            } catch (SQLException e) {
+                final String errorMessage = "Failed listing restaurants";
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+    }
 }
