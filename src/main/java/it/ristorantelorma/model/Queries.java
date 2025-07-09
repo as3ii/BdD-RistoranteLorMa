@@ -47,7 +47,7 @@ public final class Queries {
         """
         INSERT INTO RISTORANTI
         (username, nome_attività, p_va, ora_apertura, ora_chiusura)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?);
         """;
 
     /**
@@ -56,6 +56,32 @@ public final class Queries {
     public static final String LIST_RESTAURANTS =
         """
         SELECT * FROM RISTORANTI;
+        """;
+
+    /**
+     * Find a FoodType by its name.
+     */
+    public static final String FIND_FOOD_TYPE =
+        """
+        SELECT * FROM TIPO_VIVANDE WHERE nome = ?;
+        """;
+
+    /**
+     * Insert a new FoodType.
+     */
+    public static final String INSERT_FOOD_TYPE =
+        """
+        INSERT INTO TIPO_VIVANDE
+        (nome, tipologia)
+        VALUES (?, ?);
+        """;
+
+    /**
+     * List all FoodTypes.
+     */
+    public static final String LIST_FOOD_TYPES =
+        """
+        SELECT * FROM TIPO_VIVANDE;
         """;
 
     private Queries() {
