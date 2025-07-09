@@ -134,7 +134,7 @@ public final class Restaurant {
          * @return Optional.of(Restaurant) if it exists, Optional.empty() if no Restaurant was found, error otherwise
          * @throws IllegalStateException if the Restaurant searched exists but the linked User no.
          */
-        public static Result<Optional<Restaurant>> findByRestaurantName(
+        public static Result<Optional<Restaurant>> find(
             final Connection connection, final String restaurantName
         ) {
             try (
@@ -177,7 +177,7 @@ public final class Restaurant {
          * @param user
          * @return Optional.of(Restaurant) if it exists, Optional.empty() if no Restaurant was found, error otherwise
          */
-        public static Result<Optional<Restaurant>> findByUser(final Connection connection, final User user) {
+        public static Result<Optional<Restaurant>> find(final Connection connection, final User user) {
             try (
                 PreparedStatement statement = DBHelper.prepare(
                     connection, Queries.FIND_RESTAURANT_BY_USERNAME, user.getUsername()
@@ -220,7 +220,7 @@ public final class Restaurant {
                 return Result.failure(errorMessage);
             }
             final User user = tmpUser.getValue().get();
-            return findByUser(connection, user);
+            return find(connection, user);
         }
 
         /**
@@ -237,7 +237,7 @@ public final class Restaurant {
             final Connection connection, final User user, final String restaurantName,
             final String vatID, final Timestamp openingTime, final Timestamp closingTime
         ) {
-            final Result<Optional<Restaurant>> restaurant = findByUser(connection, user);
+            final Result<Optional<Restaurant>> restaurant = find(connection, user);
 
             if (!restaurant.isSuccess()) {
                 // Propagate the error
@@ -278,7 +278,7 @@ public final class Restaurant {
          * @return a Set<Restaurant> if there are no error
          * @throws IllegalStateException if one Restaurant have a non-existent linked User.
          */
-        public static Result<Set<Restaurant>> listRestaurants(final Connection connection) {
+        public static Result<Set<Restaurant>> list(final Connection connection) {
             try (
                 PreparedStatement statement = DBHelper.prepare(connection, Queries.LIST_RESTAURANTS);
                 ResultSet result = statement.executeQuery();

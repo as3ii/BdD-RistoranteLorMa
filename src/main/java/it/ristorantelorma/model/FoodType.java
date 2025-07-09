@@ -137,7 +137,7 @@ public final class FoodType {
          * @return Set<FoodType> if no error is encountered, error otherwise
          * @throws IllegalArgumentException if an invalid MacroType enum is returned from the query
          */
-        public static Result<Set<FoodType>> listFoodTypes(final Connection connection) {
+        public static Result<Set<FoodType>> list(final Connection connection) {
             try (
                 PreparedStatement statement = DBHelper.prepare(connection, Queries.LIST_FOOD_TYPES);
                 ResultSet result = statement.executeQuery();
