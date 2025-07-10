@@ -5,10 +5,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -291,15 +291,15 @@ public final class Food {
          * Lists all Foods served by the given Restaurant.
          * @param connection
          * @param restaurant
-         * @return a Set<Restaurant> if there are no error
+         * @return a Collection<Restaurant> if there are no error
          * @throws IllegalStateException if one Food have a non-existent linked FoodType.
          */
-        public static Result<Set<Food>> list(final Connection connection, final Restaurant restaurant) {
+        public static Result<Collection<Food>> list(final Connection connection, final Restaurant restaurant) {
             try (
                 PreparedStatement statement = DBHelper.prepare(connection, Queries.LIST_FOODS, restaurant.getRestaurantName());
                 ResultSet result = statement.executeQuery();
             ) {
-                final Set<Food> foods = new HashSet<>();
+                final Collection<Food> foods = new HashSet<>();
                 while (result.next()) {
                     final String typeStr = result.getString("tipologia");
                     final Result<Optional<FoodType>> tmpType = FoodType.DAO.find(connection, typeStr);

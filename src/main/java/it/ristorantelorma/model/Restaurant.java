@@ -5,10 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -275,15 +275,15 @@ public final class Restaurant {
         /**
          * Lists all restaurants in the database.
          * @param connection
-         * @return a Set<Restaurant> if there are no error
+         * @return a Collection<Restaurant> if there are no error
          * @throws IllegalStateException if one Restaurant have a non-existent linked User.
          */
-        public static Result<Set<Restaurant>> list(final Connection connection) {
+        public static Result<Collection<Restaurant>> list(final Connection connection) {
             try (
                 PreparedStatement statement = DBHelper.prepare(connection, Queries.LIST_RESTAURANTS);
                 ResultSet result = statement.executeQuery();
             ) {
-                final Set<Restaurant> restaurants = new HashSet<>();
+                final Collection<Restaurant> restaurants = new HashSet<>();
                 while (result.next()) {
                     final String restaurantName = result.getString("nome_attività");
                     final String username = result.getString("username");

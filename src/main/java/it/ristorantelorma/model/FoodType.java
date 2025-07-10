@@ -4,10 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -134,15 +134,15 @@ public final class FoodType {
         /**
          * List all FoodTypes in the database.
          * @param connection
-         * @return Set<FoodType> if no error is encountered, error otherwise
+         * @return Collection<FoodType> if no error is encountered, error otherwise
          * @throws IllegalArgumentException if an invalid MacroType enum is returned from the query
          */
-        public static Result<Set<FoodType>> list(final Connection connection) {
+        public static Result<Collection<FoodType>> list(final Connection connection) {
             try (
                 PreparedStatement statement = DBHelper.prepare(connection, Queries.LIST_FOOD_TYPES);
                 ResultSet result = statement.executeQuery();
             ) {
-                final Set<FoodType> foodTypes = new HashSet<>();
+                final Collection<FoodType> foodTypes = new HashSet<>();
                 while (result.next()) {
                     final String name = result.getString("nome");
                     final String typeStr = result.getString("tipologia");
