@@ -121,6 +121,83 @@ public final class Queries {
         WHERE nome_attività = ?;
         """;
 
+    /**
+     * List foodIds and quantities for the given Order ID.
+     */
+    public static final String LIST_FOODS_BY_ORDER_ID =
+        """
+        SELECT * FROM DETTAGLIO_ORDINI
+        WHERE codice_ordine = ?;
+        """;
+
+    /**
+     * List foodIds and quantities for the given Order ID.
+     */
+    public static final String INSERT_ORDER_DETAIL =
+        """
+        INSERT INTO DETTAGLIO_ORDINI
+        (codice_vivanda, codice_ordine, quantità)
+        """;
+
+    /**
+     * Find an Order by its ID.
+     */
+    public static final String FIND_ORDER_BY_ID =
+        """
+        SELECT * FROM ORDINI
+        WHERE id = ?;
+        """;
+
+    /**
+     * Insert a new order, with Status.WAITING and optional fields set to null.
+     */
+    public static final String INSERT_ORDER =
+        """
+        INSERT INTO ORDINI
+        (nome_attività, data_ora, stato, tariffa_spedizione, username_cliente)
+        (?, ?, 'attesa', ?, ?)
+        """;
+
+    /**
+     * Set state to ready for the given order ID.
+     */
+    public static final String SET_ORDER_READY =
+        """
+        UPDATE ORDINI
+        SET stato = 'pronto'
+        WHERE codice = ?;
+        """;
+
+    /**
+     * Set state to accepted and the acceptance time and deliveryman for the given order ID.
+     */
+    public static final String SET_ORDER_ACCEPTED =
+        """
+        UPDATE ORDINI
+        SET stato = 'accettato', ora_accettazione = ?, username_fattorino = ?
+        WHERE codice = ?;
+        """;
+
+    /**
+     * Set state to delivered and set the delivery time for the given order ID.
+     */
+    public static final String SET_ORDER_DELIVERED =
+        """
+        UPDATE ORDINI
+        SET stato = 'pronto', ora_consegna = ?
+        WHERE codice = ?;
+        """;
+
+    /**
+     * Set state to cancelled for the given order ID.
+     */
+    public static final String SET_ORDER_CANCELLED =
+        """
+        UPDATE ORDINI
+        SET stato = 'annullato'
+        WHERE codice = ?;
+        """;
+
     private Queries() {
         throw new UnsupportedOperationException("Utility class and cannot be instantiated");
     }
