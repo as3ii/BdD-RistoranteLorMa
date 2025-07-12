@@ -33,16 +33,16 @@ public enum State {
      * @throws IllegalArgumentException if stateStr is invalid
      */
     public static State fromString(final String stateStr) {
-        switch (stateStr.toLowerCase(Locale.getDefault())) {
-            case "attesa":
+        switch (stateStr.strip().toLowerCase(Locale.getDefault())) {
+            case "attesa", "waiting":
                 return WAITING;
-            case "pronto":
+            case "pronto", "ready":
                 return READY;
-            case "accettato":
+            case "accettato", "accepted":
                 return ACCEPTED;
-            case "consegnato":
+            case "consegnato", "delivered":
                 return DELIVERED;
-            case "annullato":
+            case "annullato", "cancelled":
                 return CANCELLED;
             default:
                 throw new IllegalArgumentException(
