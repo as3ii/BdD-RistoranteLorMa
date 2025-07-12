@@ -3,7 +3,7 @@ package it.ristorantelorma.model.order;
 import it.ristorantelorma.model.Food;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
-import it.ristorantelorma.model.User;
+import it.ristorantelorma.model.user.ClientUser;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Timestamp;
@@ -27,7 +27,7 @@ public class ReadyOrder extends WaitingOrder {
         final Restaurant restaurant,
         final Timestamp dateTime,
         final BigDecimal shippingRate,
-        final User client,
+        final ClientUser client,
         final Map<Food, Integer> foodRequested
     ) {
         super(id, restaurant, dateTime, shippingRate, client, foodRequested);

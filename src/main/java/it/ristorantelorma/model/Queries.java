@@ -25,6 +25,16 @@ public final class Queries {
         """;
 
     /**
+     * Set the credit of a User.
+     */
+    public static final String SET_USER_CREDIT =
+        """
+        UPDATE UTENTI
+        SET credito = ?
+        WHERE usename = ?;
+        """;
+
+    /**
      * Find a Restaurant by its name.
      */
     public static final String FIND_RESTAURANT_BY_NAME =

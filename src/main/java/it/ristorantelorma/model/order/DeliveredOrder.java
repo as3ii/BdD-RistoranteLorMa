@@ -4,7 +4,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.ristorantelorma.model.Food;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
-import it.ristorantelorma.model.User;
+import it.ristorantelorma.model.user.ClientUser;
+import it.ristorantelorma.model.user.DeliverymanUser;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Timestamp;
@@ -37,10 +38,10 @@ public final class DeliveredOrder extends AcceptedOrder {
         final Restaurant restaurant,
         final Timestamp dateTime,
         final BigDecimal shippingRate,
-        final User client,
+        final ClientUser client,
         final Map<Food, Integer> foodRequested,
         final Timestamp acceptanceTime,
-        final User deliveryman,
+        final DeliverymanUser deliveryman,
         final Timestamp deliveryTime
     ) {
         super(

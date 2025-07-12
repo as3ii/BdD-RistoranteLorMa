@@ -4,7 +4,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.ristorantelorma.model.Food;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
-import it.ristorantelorma.model.User;
+import it.ristorantelorma.model.user.ClientUser;
+import it.ristorantelorma.model.user.DeliverymanUser;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Timestamp;
@@ -22,7 +23,7 @@ public final class CancelledOrder extends Order {
 
     private final Optional<Timestamp> acceptanceTime;
     private final Optional<Timestamp> deliveryTime;
-    private final Optional<User> deliveryman;
+    private final Optional<DeliverymanUser> deliveryman;
 
     /**
      * @param id                the ID of the record in the database
@@ -40,10 +41,10 @@ public final class CancelledOrder extends Order {
         final Restaurant restaurant,
         final Timestamp dateTime,
         final BigDecimal shippingRate,
-        final User client,
+        final ClientUser client,
         final Map<Food, Integer> foodRequested,
         final Optional<Timestamp> acceptanceTime,
-        final Optional<User> deliveryman,
+        final Optional<DeliverymanUser> deliveryman,
         final Optional<Timestamp> deliveryTime
     ) {
         super(id, restaurant, dateTime, shippingRate, client, foodRequested);
@@ -105,7 +106,7 @@ public final class CancelledOrder extends Order {
     /**
      * @return the User of the deliveryman if the order were accepted or delivered, empty otherwise
      */
-    public Optional<User> getDeliveryman() {
+    public Optional<DeliverymanUser> getDeliveryman() {
         return deliveryman;
     }
 

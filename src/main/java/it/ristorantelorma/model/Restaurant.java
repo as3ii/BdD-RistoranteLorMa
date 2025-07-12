@@ -13,12 +13,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import it.ristorantelorma.controller.SimpleLogger;
+import it.ristorantelorma.model.user.RestaurantUser;
 
 /**
  * Represent an entry in the RESTAURANTS table of the database.
  */
 public final class Restaurant {
-    private final User user;
+    private final RestaurantUser user;
     private final String restaurantName;
     private final String vatID;
     private final Timestamp openingTime;
@@ -31,7 +32,7 @@ public final class Restaurant {
      * @param openingTime       when the restaurant opens
      * @param closingTime       when the restaurant closes
      */
-    public Restaurant(final User user, final String restaurantName,
+    public Restaurant(final RestaurantUser user, final String restaurantName,
         final String vatID, final Timestamp openingTime, final Timestamp closingTime
     ) {
         this.user = user;
@@ -44,7 +45,7 @@ public final class Restaurant {
     /**
      * @return the User that manage the Restaurant
      */
-    public User getUser() {
+    public RestaurantUser getUser() {
         return user;
     }
 
@@ -143,7 +144,7 @@ public final class Restaurant {
             ) {
                 if (result.next()) {
                     final String username = result.getString("username");
-                    final Result<Optional<User>> tmpUser = User.DAO.find(connection, username);
+                    final Result<Optional<RestaurantUser>> tmpUser = RestaurantUser.DAO.find(connection, username);
                     if (!tmpUser.isSuccess()) {
                         // Propagate the error
                         return Result.failure(tmpUser.getErrorMessage());
@@ -154,7 +155,7 @@ public final class Restaurant {
                         throw new IllegalStateException(errorMessage);
                     }
 
-                    final User user = tmpUser.getValue().get();
+                    final RestaurantUser user = tmpUser.getValue().get();
                     final String vatID = result.getString("p_iva");
                     final Timestamp openingTime = result.getTimestamp("ora_apertura");
                     final Timestamp closingTime = result.getTimestamp("ora_chiusura");
@@ -177,7 +178,7 @@ public final class Restaurant {
          * @param user
          * @return Optional.of(Restaurant) if it exists, Optional.empty() if no Restaurant was found, error otherwise
          */
-        public static Result<Optional<Restaurant>> find(final Connection connection, final User user) {
+        public static Result<Optional<Restaurant>> find(final Connection connection, final RestaurantUser user) {
             try (
                 PreparedStatement statement = DBHelper.prepare(
                     connection, Queries.FIND_RESTAURANT_BY_USERNAME, user.getUsername()
@@ -209,7 +210,7 @@ public final class Restaurant {
          * @return Optional.of(Restaurant) if it exists, Optional.empty() if no Restaurant was found, error otherwise
          */
         public static Result<Optional<Restaurant>> findByUsername(final Connection connection, final String username) {
-            final Result<Optional<User>> tmpUser = User.DAO.find(connection, username);
+            final Result<Optional<RestaurantUser>> tmpUser = RestaurantUser.DAO.find(connection, username);
             if (!tmpUser.isSuccess()) {
                 // Propagate the error
                 return Result.failure(tmpUser.getErrorMessage());
@@ -219,7 +220,7 @@ public final class Restaurant {
                 LOGGER.log(Level.SEVERE, errorMessage);
                 return Result.failure(errorMessage);
             }
-            final User user = tmpUser.getValue().get();
+            final RestaurantUser user = tmpUser.getValue().get();
             return find(connection, user);
         }
 
@@ -234,7 +235,7 @@ public final class Restaurant {
          * @return the Restaurant if it has been correctly added, empty otherwise
          */
         public static Result<Restaurant> insert(
-            final Connection connection, final User user, final String restaurantName,
+            final Connection connection, final RestaurantUser user, final String restaurantName,
             final String vatID, final Timestamp openingTime, final Timestamp closingTime
         ) {
             final Result<Optional<Restaurant>> restaurant = find(connection, user);
@@ -287,7 +288,7 @@ public final class Restaurant {
                 while (result.next()) {
                     final String restaurantName = result.getString("nome_attività");
                     final String username = result.getString("username");
-                    final Result<Optional<User>> tmpUser = User.DAO.find(connection, username);
+                    final Result<Optional<RestaurantUser>> tmpUser = RestaurantUser.DAO.find(connection, username);
                     if (!tmpUser.isSuccess()) {
                         // Propagate error
                         return Result.failure(tmpUser.getErrorMessage());
@@ -300,7 +301,7 @@ public final class Restaurant {
                         throw new IllegalStateException(errorMessage);
                     }
 
-                    final User user = tmpUser.getValue().get();
+                    final RestaurantUser user = tmpUser.getValue().get();
                     final String vatID = result.getString("p_iva");
                     final Timestamp openingTime = result.getTimestamp("ora_apertura");
                     final Timestamp closingTime = result.getTimestamp("ora_chiusura");

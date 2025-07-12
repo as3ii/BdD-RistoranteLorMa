@@ -1,6 +1,10 @@
 package it.ristorantelorma.model;
 
 import java.util.Optional;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import it.ristorantelorma.model.user.ClientUser;
+
 import java.util.Objects;
 import java.sql.Timestamp;
 
@@ -13,7 +17,7 @@ public final class Review {
     private final Timestamp date;
     private final Vote vote;
     private final Optional<String> comment;
-    private final User user;
+    private final ClientUser user;
 
     /**
      * @param id                the ID of the record in the database
@@ -23,9 +27,13 @@ public final class Review {
      * @param comment           Optional comment
      * @param user              the User that wrote the review
      */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The client's credit can be mutated without issues"
+    )
     public Review(
         final int id, final Restaurant restaurant, final Timestamp date,
-        final Vote vote, final Optional<String> comment, final User user
+        final Vote vote, final Optional<String> comment, final ClientUser user
     ) {
         this.id = id;
         this.restaurant = restaurant;
@@ -81,7 +89,11 @@ public final class Review {
     /**
      * @return the username of the User that wrote the Review
      */
-    public User getUser() {
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The client's credit can be mutated without issues"
+    )
+    public ClientUser getUser() {
         return user;
     }
 

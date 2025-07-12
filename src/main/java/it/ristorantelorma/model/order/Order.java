@@ -7,7 +7,8 @@ import it.ristorantelorma.model.Food;
 import it.ristorantelorma.model.Queries;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
-import it.ristorantelorma.model.User;
+import it.ristorantelorma.model.user.ClientUser;
+import it.ristorantelorma.model.user.DeliverymanUser;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,7 +38,7 @@ public abstract class Order {
     private final Restaurant restaurant;
     private final Timestamp dateTime;
     private final BigDecimal shippingRate;
-    private final User client;
+    private final ClientUser client;
     private final Map<Food, Integer> foodRequested;
 
     /**
@@ -48,12 +49,12 @@ public abstract class Order {
      * @param client            the client that placed the order
      * @param foodRequested     the food requested by the client
      */
-    protected Order(
+    Order(
         final int id,
         final Restaurant restaurant,
         final Timestamp dateTime,
         final BigDecimal shippingRate,
-        final User client,
+        final ClientUser client,
         final Map<Food, Integer> foodRequested
     ) {
         this.id = id;
@@ -95,7 +96,11 @@ public abstract class Order {
     /**
      * @return the User of the client
      */
-    public User getClient() {
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The client's credit can be mutated without issues"
+    )
+    public ClientUser getClient() {
         return client;
     }
 
@@ -155,7 +160,7 @@ public abstract class Order {
         return String.format(
             "%s = { id = %d, client = \"%s\", restaurant = \"%s\", "
             + "dateTime = %s, shippingRate = %.2f, state = \"%s\", foodRequested = %s }",
-            this.getClass().getCanonicalName(),
+            this.getClass().getSimpleName(),
             id,
             client.getUsername(),
             restaurant.getRestaurantName(),
@@ -344,7 +349,7 @@ public abstract class Order {
                     final String clientStr = result.getString(
                         "username_cliente"
                     );
-                    final Result<Optional<User>> tmpClient = User.DAO.find(
+                    final Result<Optional<ClientUser>> tmpClient = ClientUser.DAO.find(
                         connection,
                         clientStr
                     );
@@ -359,15 +364,15 @@ public abstract class Order {
                         LOGGER.log(Level.SEVERE, errorMessage);
                         throw new IllegalStateException(errorMessage);
                     }
-                    final User client = tmpClient.getValue().get();
+                    final ClientUser client = tmpClient.getValue().get();
 
                     final Optional<String> deliverymanStr = Optional.ofNullable(
                         result.getString("username_fattorino")
                     );
-                    final Optional<User> deliveryman;
+                    final Optional<DeliverymanUser> deliveryman;
                     if (deliverymanStr.isPresent()) {
-                        final Result<Optional<User>> tmpDeliveryman =
-                            User.DAO.find(connection, deliverymanStr.get());
+                        final Result<Optional<DeliverymanUser>> tmpDeliveryman =
+                            DeliverymanUser.DAO.find(connection, deliverymanStr.get());
                         if (!tmpDeliveryman.isSuccess()) {
                             // Propagate the error
                             return Result.failure(
@@ -530,7 +535,7 @@ public abstract class Order {
             final Restaurant restaurant,
             final Timestamp dateTime,
             final BigDecimal shippingRate,
-            final User client,
+            final ClientUser client,
             final Map<Food, Integer> foodRequested
         ) {
             try (

@@ -4,7 +4,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.ristorantelorma.model.Food;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
-import it.ristorantelorma.model.User;
+import it.ristorantelorma.model.user.ClientUser;
+import it.ristorantelorma.model.user.DeliverymanUser;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Timestamp;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class AcceptedOrder extends ReadyOrder {
 
     private final Timestamp acceptanceTime;
-    private final User deliveryman;
+    private final DeliverymanUser deliveryman;
 
     /**
      * @param id                the ID of the record in the database
@@ -37,10 +38,10 @@ public class AcceptedOrder extends ReadyOrder {
         final Restaurant restaurant,
         final Timestamp dateTime,
         final BigDecimal shippingRate,
-        final User client,
+        final ClientUser client,
         final Map<Food, Integer> foodRequested,
         final Timestamp acceptanceTime,
-        final User deliveryman
+        final DeliverymanUser deliveryman
     ) {
         super(id, restaurant, dateTime, shippingRate, client, foodRequested);
         this.acceptanceTime = new Timestamp(acceptanceTime.getTime());
@@ -55,7 +56,7 @@ public class AcceptedOrder extends ReadyOrder {
     public AcceptedOrder(
         final ReadyOrder order,
         final Timestamp acceptanceTime,
-        final User deliveryman
+        final DeliverymanUser deliveryman
     ) {
         super(
             order.getId(),
@@ -79,7 +80,7 @@ public class AcceptedOrder extends ReadyOrder {
     /**
      * @return the User of the deliveryman
      */
-    public User getDeliveryman() {
+    public DeliverymanUser getDeliveryman() {
         return deliveryman;
     }
 
@@ -113,7 +114,7 @@ public class AcceptedOrder extends ReadyOrder {
             final Connection connection,
             final ReadyOrder order,
             final Timestamp acceptanceTime,
-            final User deliveryman
+            final DeliverymanUser deliveryman
         ) {
             final Result<Order> res = Order.DAO.updateState(
                 connection,
