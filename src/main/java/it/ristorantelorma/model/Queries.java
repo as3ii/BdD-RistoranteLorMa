@@ -141,7 +141,7 @@ public final class Queries {
         """;
 
     /**
-     * List foodIds and quantities for the given Order ID.
+     * Insert a new record in DETTAGLIO_ORDINI.
      */
     public static final String INSERT_ORDER_DETAIL =
         """
@@ -205,6 +205,34 @@ public final class Queries {
         """
         UPDATE ORDINI
         SET stato = 'annullato'
+        WHERE codice = ?;
+        """;
+
+    /**
+     * List all reviews for the given restaurant name.
+     */
+    public static final String LIST_REVIEWS_OF_RESTAURANT =
+        """
+        SELECT * FROM RECENSIONI
+        WHERE nome_attività = ?;
+        """;
+
+    /**
+     * Insert a new Review.
+     */
+    public static final String INSERT_REVIEW =
+        """
+        INSERT INTO RECENSIONI
+        (nome_attività, data, voto, commento, username)
+        VALUES (?, ?, ?, ?, ?);
+        """;
+
+    /**
+     * Delete a review given its ID.
+     */
+    public static final String DELETE_REVIEW =
+        """
+        DELETE FROM RECENSIONI
         WHERE codice = ?;
         """;
 
