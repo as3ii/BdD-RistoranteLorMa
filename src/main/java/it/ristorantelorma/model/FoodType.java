@@ -292,7 +292,7 @@ public final class FoodType {
                     return Result.failure(errorMessage);
                 }
             } catch (SQLException e) {
-                final String errorMessage = "Failed deletion of the review";
+                final String errorMessage = "Failed getting most purchased FoodType";
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 return Result.failure(errorMessage);
             }

@@ -236,6 +236,7 @@ public final class Food {
          * @param price
          * @param type
          * @return the Food if it has been correctly added, empty otherwise
+         * @throws IllegalStateException if the retrival of the record ID fails
          */
         public static Result<Food> insert(
             final Connection connection, final String name, final Restaurant restaurant,
