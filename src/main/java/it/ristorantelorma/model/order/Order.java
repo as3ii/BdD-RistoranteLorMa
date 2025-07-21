@@ -18,7 +18,9 @@ import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -305,6 +307,193 @@ public abstract class Order {
         }
 
         /**
+         * @param connection
+         * @param result
+         * @return the Order if there are no errors
+         * @throws IllegalStateException if the Order searched exists but the linked Restaurant name,
+         *         client username, or deliveryman username do not.
+         * @throws IllegalArgumentException if an invalid Status enum is returned from the query
+         */
+        private static Result<Order> fromOrderResultSet(
+            final Connection connection,
+            final ResultSet result
+        ) throws SQLException {
+            final int id = result.getInt("codice");
+            final String restaurantStr = result.getString(
+                "nome_attività"
+            );
+            final Result<Optional<Restaurant>> tmpRestaurant =
+                Restaurant.DAO.find(connection, restaurantStr);
+            if (!tmpRestaurant.isSuccess()) {
+                // Propagate the error
+                return Result.failure(tmpRestaurant.getErrorMessage());
+            }
+            if (!tmpRestaurant.getValue().isPresent()) {
+                final String errorMessage =
+                    "The Order have an invalid Restaurant name: "
+                    + restaurantStr;
+                LOGGER.log(Level.SEVERE, errorMessage);
+                throw new IllegalStateException(errorMessage);
+            }
+            final Restaurant restaurant = tmpRestaurant
+                .getValue()
+                .get();
+
+            final String clientStr = result.getString(
+                "username_cliente"
+            );
+            final Result<Optional<ClientUser>> tmpClient = ClientUser.DAO.find(
+                connection,
+                clientStr
+            );
+            if (!tmpClient.isSuccess()) {
+                // Propagate the error
+                return Result.failure(tmpClient.getErrorMessage());
+            }
+            if (!tmpClient.getValue().isPresent()) {
+                final String errorMessage =
+                    "The Order have an invalid client's username: "
+                    + clientStr;
+                LOGGER.log(Level.SEVERE, errorMessage);
+                throw new IllegalStateException(errorMessage);
+            }
+            final ClientUser client = tmpClient.getValue().get();
+
+            final Optional<String> deliverymanStr = Optional.ofNullable(
+                result.getString("username_fattorino")
+            );
+            final Optional<DeliverymanUser> deliveryman;
+            if (deliverymanStr.isPresent()) {
+                final Result<Optional<DeliverymanUser>> tmpDeliveryman =
+                    DeliverymanUser.DAO.find(connection, deliverymanStr.get());
+                if (!tmpDeliveryman.isSuccess()) {
+                    // Propagate the error
+                    return Result.failure(
+                        tmpDeliveryman.getErrorMessage()
+                    );
+                }
+                if (!tmpDeliveryman.getValue().isPresent()) {
+                    final String errorMessage =
+                        "The Order have an invalid deliveryman's username: "
+                        + deliverymanStr.get();
+                    LOGGER.log(Level.SEVERE, errorMessage);
+                    throw new IllegalStateException(errorMessage);
+                }
+                deliveryman = tmpDeliveryman.getValue();
+            } else {
+                deliveryman = Optional.empty();
+            }
+
+            final Result<Map<Food, Integer>> tmpFoodRequested =
+                getFoodList(connection, id);
+            if (!tmpFoodRequested.isSuccess()) {
+                // Propagate the error
+                return Result.failure(tmpClient.getErrorMessage());
+            }
+            final Map<Food, Integer> foodRequested =
+                tmpFoodRequested.getValue();
+
+            final Timestamp dateTime = result.getTimestamp("data_ora");
+            final BigDecimal shippingRate = result.getBigDecimal(
+                "tariffa_spedizione"
+            );
+            final Optional<Timestamp> acceptanceTime =
+                Optional.ofNullable(
+                    result.getTimestamp("ora_accettazione")
+                );
+            final Optional<Timestamp> deliveryTime =
+                Optional.ofNullable(
+                    result.getTimestamp("ora_consegna")
+                );
+
+            final String stateStr = result.getString("stato");
+            switch (State.fromString(stateStr)) {
+                case State.WAITING:
+                    return Result.success(
+                        new WaitingOrder(
+                            id,
+                            restaurant,
+                            dateTime,
+                            shippingRate,
+                            client,
+                            foodRequested
+                        )
+                    );
+                case State.READY:
+                    return Result.success(
+                        new ReadyOrder(
+                            id,
+                            restaurant,
+                            dateTime,
+                            shippingRate,
+                            client,
+                            foodRequested
+                        )
+                    );
+                case State.ACCEPTED:
+                    if (
+                        acceptanceTime.isEmpty()
+                        || deliveryman.isEmpty()
+                    ) {
+                        throw new IllegalStateException(
+                            "State cannot be 'accepted' with empty acceptanceTime or deliveryman"
+                        );
+                    }
+                    return Result.success(
+                        new AcceptedOrder(
+                            id,
+                            restaurant,
+                            dateTime,
+                            shippingRate,
+                            client,
+                            foodRequested,
+                            acceptanceTime.get(),
+                            deliveryman.get()
+                        )
+                    );
+                case State.DELIVERED:
+                    if (
+                        acceptanceTime.isEmpty()
+                        || deliveryman.isEmpty()
+                        || deliveryTime.isEmpty()
+                    ) {
+                        throw new IllegalStateException(
+                            "State cannot be 'accepted' with empty acceptanceTime, deliveryman or deliveryTime"
+                        );
+                    }
+                    return Result.success(
+                        new DeliveredOrder(
+                            id,
+                            restaurant,
+                            dateTime,
+                            shippingRate,
+                            client,
+                            foodRequested,
+                            acceptanceTime.get(),
+                            deliveryman.get(),
+                            deliveryTime.get()
+                        )
+                    );
+                case State.CANCELLED:
+                    return Result.success(
+                        new CancelledOrder(
+                            id,
+                            restaurant,
+                            dateTime,
+                            shippingRate,
+                            client,
+                            foodRequested,
+                            acceptanceTime,
+                            deliveryman,
+                            deliveryTime
+                        )
+                    );
+                default:
+                    return Result.failure("Invalid state");
+            }
+        }
+
+        /**
          * Find in the database the Order with the given id.
          * @param connection
          * @param id
@@ -326,187 +515,20 @@ public abstract class Order {
                 ResultSet result = statement.executeQuery();
             ) {
                 if (result.next()) {
-                    final String restaurantStr = result.getString(
-                        "nome_attività"
-                    );
-                    final Result<Optional<Restaurant>> tmpRestaurant =
-                        Restaurant.DAO.find(connection, restaurantStr);
-                    if (!tmpRestaurant.isSuccess()) {
-                        // Propagate the error
-                        return Result.failure(tmpRestaurant.getErrorMessage());
-                    }
-                    if (!tmpRestaurant.getValue().isPresent()) {
-                        final String errorMessage =
-                            "The Order have an invalid Restaurant name: "
-                            + restaurantStr;
-                        LOGGER.log(Level.SEVERE, errorMessage);
-                        throw new IllegalStateException(errorMessage);
-                    }
-                    final Restaurant restaurant = tmpRestaurant
-                        .getValue()
-                        .get();
-
-                    final String clientStr = result.getString(
-                        "username_cliente"
-                    );
-                    final Result<Optional<ClientUser>> tmpClient = ClientUser.DAO.find(
+                    final Result<Order> resOrder = fromOrderResultSet(
                         connection,
-                        clientStr
-                    );
-                    if (!tmpClient.isSuccess()) {
-                        // Propagate the error
-                        return Result.failure(tmpClient.getErrorMessage());
-                    }
-                    if (!tmpClient.getValue().isPresent()) {
-                        final String errorMessage =
-                            "The Order have an invalid client's username: "
-                            + clientStr;
-                        LOGGER.log(Level.SEVERE, errorMessage);
-                        throw new IllegalStateException(errorMessage);
-                    }
-                    final ClientUser client = tmpClient.getValue().get();
-
-                    final Optional<String> deliverymanStr = Optional.ofNullable(
-                        result.getString("username_fattorino")
-                    );
-                    final Optional<DeliverymanUser> deliveryman;
-                    if (deliverymanStr.isPresent()) {
-                        final Result<Optional<DeliverymanUser>> tmpDeliveryman =
-                            DeliverymanUser.DAO.find(connection, deliverymanStr.get());
-                        if (!tmpDeliveryman.isSuccess()) {
-                            // Propagate the error
-                            return Result.failure(
-                                tmpDeliveryman.getErrorMessage()
-                            );
-                        }
-                        if (!tmpDeliveryman.getValue().isPresent()) {
-                            final String errorMessage =
-                                "The Order have an invalid deliveryman's username: "
-                                + deliverymanStr.get();
-                            LOGGER.log(Level.SEVERE, errorMessage);
-                            throw new IllegalStateException(errorMessage);
-                        }
-                        deliveryman = tmpDeliveryman.getValue();
+                        result
+                        );
+                    if (resOrder.isSuccess()) {
+                        return Result.success(
+                            Optional.of(
+                                resOrder.getValue()
+                            )
+                        );
                     } else {
-                        deliveryman = Optional.empty();
-                    }
-
-                    final Result<Map<Food, Integer>> tmpFoodRequested =
-                        getFoodList(connection, id);
-                    if (!tmpFoodRequested.isSuccess()) {
-                        // Propagate the error
-                        return Result.failure(tmpClient.getErrorMessage());
-                    }
-                    final Map<Food, Integer> foodRequested =
-                        tmpFoodRequested.getValue();
-
-                    final Timestamp dateTime = result.getTimestamp("data_ora");
-                    final BigDecimal shippingRate = result.getBigDecimal(
-                        "tariffa_spedizione"
-                    );
-                    final Optional<Timestamp> acceptanceTime =
-                        Optional.ofNullable(
-                            result.getTimestamp("ora_accettazione")
+                        return Result.failure(
+                            resOrder.getErrorMessage()
                         );
-                    final Optional<Timestamp> deliveryTime =
-                        Optional.ofNullable(
-                            result.getTimestamp("ora_consegna")
-                        );
-
-                    final String stateStr = result.getString("stato");
-                    switch (State.fromString(stateStr)) {
-                        case State.WAITING:
-                            return Result.success(
-                                Optional.of(
-                                    new WaitingOrder(
-                                        id,
-                                        restaurant,
-                                        dateTime,
-                                        shippingRate,
-                                        client,
-                                        foodRequested
-                                    )
-                                )
-                            );
-                        case State.READY:
-                            return Result.success(
-                                Optional.of(
-                                    new ReadyOrder(
-                                        id,
-                                        restaurant,
-                                        dateTime,
-                                        shippingRate,
-                                        client,
-                                        foodRequested
-                                    )
-                                )
-                            );
-                        case State.ACCEPTED:
-                            if (
-                                acceptanceTime.isEmpty()
-                                || deliveryman.isEmpty()
-                            ) {
-                                throw new IllegalStateException(
-                                    "State cannot be 'accepted' with empty acceptanceTime or deliveryman"
-                                );
-                            }
-                            return Result.success(
-                                Optional.of(
-                                    new AcceptedOrder(
-                                        id,
-                                        restaurant,
-                                        dateTime,
-                                        shippingRate,
-                                        client,
-                                        foodRequested,
-                                        acceptanceTime.get(),
-                                        deliveryman.get()
-                                    )
-                                )
-                            );
-                        case State.DELIVERED:
-                            if (
-                                acceptanceTime.isEmpty()
-                                || deliveryman.isEmpty()
-                                || deliveryTime.isEmpty()
-                            ) {
-                                throw new IllegalStateException(
-                                    "State cannot be 'accepted' with empty acceptanceTime, deliveryman or deliveryTime"
-                                );
-                            }
-                            return Result.success(
-                                Optional.of(
-                                    new DeliveredOrder(
-                                        id,
-                                        restaurant,
-                                        dateTime,
-                                        shippingRate,
-                                        client,
-                                        foodRequested,
-                                        acceptanceTime.get(),
-                                        deliveryman.get(),
-                                        deliveryTime.get()
-                                    )
-                                )
-                            );
-                        case State.CANCELLED:
-                            return Result.success(
-                                Optional.of(
-                                    new CancelledOrder(
-                                        id,
-                                        restaurant,
-                                        dateTime,
-                                        shippingRate,
-                                        client,
-                                        foodRequested,
-                                        acceptanceTime,
-                                        deliveryman,
-                                        deliveryTime
-                                    )
-                                )
-                            );
-                        default:
-                            return Result.failure("Invalid state");
                     }
                 } else {
                     return Result.success(Optional.empty());
@@ -527,7 +549,7 @@ public abstract class Order {
          * @param shippingRate
          * @param client
          * @param foodRequested
-         * @return the WaitingOrder if it has benn correctly added, empty otherwise
+         * @return the WaitingOrder if it has been correctly added, empty otherwise
          * @throws IllegalStateException if the retrival of the record ID fails
          */
         public static Result<WaitingOrder> insert(
@@ -640,6 +662,49 @@ public abstract class Order {
             } catch (SQLException e) {
                 final String errorMessage =
                     "Failed updating order: " + order.getId();
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * List orders with the given State.
+         * @param connection
+         * @param state
+         * @return a Collection<Order> if there are no errors
+         * @throws IllegalStateException if the Order searched exists but the linked Restaurant name,
+         *         client username, or deliveryman username do not.
+         * @throws IllegalArgumentException if an invalid Status enum is returned from the query
+         */
+        static Result<Collection<Order>> listByState(
+            final Connection connection,
+            final State state
+        ) {
+            final String stateStr = State.toSQLStr(state);
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    Queries.LIST_ORDERS_BY_STATE,
+                    stateStr
+                );
+                ResultSet result = statement.executeQuery();
+            ) {
+                final Collection<Order> orders = new HashSet<>();
+                while (result.next()) {
+                    final Result<Order> resOrder = fromOrderResultSet(
+                        connection,
+                        result
+                        );
+                    if (!resOrder.isSuccess()) {
+                        // Propagate error
+                        return Result.failure(resOrder.getErrorMessage());
+                    } else {
+                        orders.add(resOrder.getValue());
+                    }
+                }
+                return Result.success(orders);
+            } catch (SQLException e) {
+                final String errorMessage = "Failed listing Orders";
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 return Result.failure(errorMessage);
             }

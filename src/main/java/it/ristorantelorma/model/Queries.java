@@ -220,6 +220,15 @@ public final class Queries {
         """;
 
     /**
+     * Lists orders with the given state.
+     */
+    public static final String LIST_ORDERS_BY_STATE =
+        """
+        SELECT * FROM ORDINI
+        WHERE stato = ?;
+        """;
+
+    /**
      * List all reviews for the given restaurant name.
      */
     public static final String LIST_REVIEWS_OF_RESTAURANT =

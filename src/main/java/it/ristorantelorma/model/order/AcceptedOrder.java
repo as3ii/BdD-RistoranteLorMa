@@ -9,7 +9,9 @@ import it.ristorantelorma.model.user.DeliverymanUser;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represent an entry in the ORDERS table of the database with state = State.ACCEPTED.
@@ -129,6 +131,34 @@ public class AcceptedOrder extends ReadyOrder {
             }
             return Result.success(
                 new AcceptedOrder(order, acceptanceTime, deliveryman)
+            );
+        }
+
+        /**
+         * List orders ready to be delivered.
+         * @param connection
+         * @return a Collection<AcceptedOrder> if there are no errors
+         * @throws IllegalStateException if the Order searched exists but the linked Restaurant name,
+         *         client username, or deliveryman username do not.
+         * @throws IllegalArgumentException if an invalid Status enum is returned from the query
+         */
+        public static Result<Collection<AcceptedOrder>> list(
+            final Connection connection
+        ) {
+            final Result<Collection<Order>> res = Order.DAO.listByState(
+                connection,
+                State.ACCEPTED
+            );
+            if (!res.isSuccess()) {
+                // Propagate error
+                return Result.failure(res.getErrorMessage());
+            }
+            return Result.success(
+                res
+                    .getValue()
+                    .stream()
+                    .map(val -> (AcceptedOrder) val)
+                    .collect(Collectors.toSet())
             );
         }
     }

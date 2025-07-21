@@ -50,4 +50,28 @@ public enum State {
                 );
         }
     }
+
+    /**
+     * @param state
+     * @return strong equivalent to be used in SQL queries
+     * @throws IllegalArgumentException if state is invalid
+     */
+    public static String toSQLStr(final State state) {
+        switch (state) {
+            case ACCEPTED:
+                return "accettato";
+            case CANCELLED:
+                return "annullato";
+            case DELIVERED:
+                return "consegnato";
+            case READY:
+                return "pronto";
+            case WAITING:
+                return "attesa";
+            default:
+                throw new IllegalArgumentException(
+                    "Invalid state value: " + state.toString()
+                );
+        }
+    }
 }
