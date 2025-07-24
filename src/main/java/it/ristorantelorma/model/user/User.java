@@ -300,17 +300,17 @@ public abstract class User {
                             );
                             break;
                         case DELIVERYMAN:
-                        newUser = new DeliverymanUser(
-                            name,
-                            surname,
-                            username,
-                            password,
-                            phone,
-                            email,
-                            city,
-                            street,
-                            houseNumber
-                        );
+                            newUser = new DeliverymanUser(
+                                name,
+                                surname,
+                                username,
+                                password,
+                                phone,
+                                email,
+                                city,
+                                street,
+                                houseNumber
+                            );
                             break;
                         case RESTAURANT:
                             newUser = new RestaurantUser(
@@ -369,7 +369,9 @@ public abstract class User {
                     final Optional<BigDecimal> credit = Optional.ofNullable(
                         result.getBigDecimal("credito")
                     );
-                    final Role role = Role.fromString(result.getString("ruolo"));
+                    final Role role = Role.fromString(
+                        result.getString("ruolo")
+                    );
                     final User newUser;
                     switch (role) {
                         case ADMIN:
@@ -405,17 +407,17 @@ public abstract class User {
                             );
                             break;
                         case DELIVERYMAN:
-                        newUser = new DeliverymanUser(
-                            name,
-                            surname,
-                            username,
-                            password,
-                            phone,
-                            email,
-                            city,
-                            street,
-                            houseNumber
-                        );
+                            newUser = new DeliverymanUser(
+                                name,
+                                surname,
+                                username,
+                                password,
+                                phone,
+                                email,
+                                city,
+                                street,
+                                houseNumber
+                            );
                             break;
                         case RESTAURANT:
                             newUser = new RestaurantUser(
@@ -433,11 +435,7 @@ public abstract class User {
                         default:
                             return Result.failure("Invalid role");
                     }
-                    return Result.success(
-                        Optional.of(
-                            newUser
-                        )
-                    );
+                    return Result.success(Optional.of(newUser));
                 } else {
                     return Result.success(Optional.empty());
                 }
