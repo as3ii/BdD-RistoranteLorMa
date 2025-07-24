@@ -188,12 +188,19 @@ public abstract class Order {
         }
 
         /**
-         *
+         * Get the list of foods for the given Order.
          * @param connection
-         * @param id
+         * @param order
          * @return Map<Food,Integer> if no error is encountered, error otherwise
          */
         public static Result<Map<Food, Integer>> getFoodList(
+             final Connection connection,
+             final Order order
+         ) {
+             return getFoodList(connection, order.getId());
+         }
+
+        static Result<Map<Food, Integer>> getFoodList(
             final Connection connection,
             final int id
         ) {
