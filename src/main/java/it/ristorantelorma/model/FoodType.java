@@ -254,13 +254,13 @@ public final class FoodType {
          * @return a pair <FoodType, Integer> if there are no errors
          * @throws IllegalArgumentException if an invalid MacroType enum is returned from the query
          */
-        public static Result<Entry<FoodType, Integer>> getMostBuyed(
+        public static Result<Entry<FoodType, Integer>> getMostPurchased(
             final Connection connection
         ) {
             try (
                 PreparedStatement statement = DBHelper.prepare(
                     connection,
-                    Queries.FIND_FOOD_TYPE_MOST_BUYED
+                    Queries.FIND_FOOD_TYPE_MOST_PURCHASED
                 );
                 ResultSet result = statement.executeQuery();
             ) {

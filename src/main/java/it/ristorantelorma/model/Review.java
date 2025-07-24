@@ -231,7 +231,7 @@ public final class Review {
          * @param comment
          * @param user
          * @return the Review if it hase been correctly added, error otherwise
-         * @throws IllegalStateException if the retrival of the record ID fails
+         * @throws IllegalStateException if the retrieval of the record ID fails
          */
         public static Result<Review> insert(
             final Connection connection,
@@ -274,7 +274,7 @@ public final class Review {
                             );
                         } else {
                             final String errorMessage =
-                                "Insertion of Review seams complete but the retrival of the record ID failed";
+                                "Insertion of Review seams complete but the retrieval of the record ID failed";
                             LOGGER.log(Level.SEVERE, errorMessage);
                             throw new IllegalStateException(errorMessage);
                         }

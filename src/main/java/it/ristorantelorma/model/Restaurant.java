@@ -276,7 +276,7 @@ public final class Restaurant {
         /**
          * Lists all restaurants in the database.
          * @param connection
-         * @return a Collection<Restaurant> if there are no error
+         * @return a Collection<Restaurant> if there are no errors
          * @throws IllegalStateException if one Restaurant have a non-existent linked User.
          */
         public static Result<Collection<Restaurant>> list(final Connection connection) {

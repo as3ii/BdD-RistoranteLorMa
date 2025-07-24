@@ -236,7 +236,7 @@ public final class Food {
          * @param price
          * @param type
          * @return the Food if it has been correctly added, empty otherwise
-         * @throws IllegalStateException if the retrival of the record ID fails
+         * @throws IllegalStateException if the retrieval of the record ID fails
          */
         public static Result<Food> insert(
             final Connection connection, final String name, final Restaurant restaurant,
@@ -275,7 +275,7 @@ public final class Food {
                             );
                         } else {
                             final String errorMessage =
-                                "Insertion of Food seams complete but the retrival of the record ID failed";
+                                "Insertion of Food seams complete but the retrieval of the record ID failed";
                             LOGGER.log(Level.SEVERE, errorMessage);
                             throw new IllegalStateException(errorMessage);
                         }

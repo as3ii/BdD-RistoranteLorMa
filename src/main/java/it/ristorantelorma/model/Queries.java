@@ -107,7 +107,7 @@ public final class Queries {
     /**
      * Find the most purchased FoodType.
      */
-    public static final String FIND_FOOD_TYPE_MOST_BUYED =
+    public static final String FIND_FOOD_TYPE_MOST_PURCHASED =
         """
         SELECT t.*,SUM(d.quantità) AS "totale"
         FROM TIPO_VIVANDE t, VIVANDE v, DETTAGLIO_ORDINI d
