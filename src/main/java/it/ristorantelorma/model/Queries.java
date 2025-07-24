@@ -35,6 +35,16 @@ public final class Queries {
         """;
 
     /**
+     * Find the deliveryman with more deliveries.
+     */
+    public static final String FIND_DELIVERYMAN_WITH_MORE_DELIVERIES =
+        """
+        SELECT u.*,COUNT(o.username_fattorino) AS "numero_ordini"
+        FROM UTENTI u, ORDINI o
+        WHERE u.username = o.username_fattorino AND ora_consegna IS NOT NULL
+        GROUP BY o.username_fattorino ORDER BY numero_ordini DESC LIMIT 1;
+        """;
+    /**
      * Find a Restaurant by its name.
      */
     public static final String FIND_RESTAURANT_BY_NAME =
