@@ -162,6 +162,17 @@ public final class Queries {
         """;
 
     /**
+     * Find the most purchased Food.
+     */
+    public static final String FIND_FOOD_MOST_PURCHASED =
+        """
+        SELECT v.*,SUM(d.quantità) AS "quantità_totale"
+        FROM VIVANDE v, DETTAGLIO_ORDINI d
+        WHERE v.codice = d.codice_vivanda
+        GROUP BY codice_vivanda ORDER BY quantità_totale DESC LIMIT 1;
+        """;
+
+    /**
      * Insert a new record in DETTAGLIO_ORDINI.
      */
     public static final String INSERT_ORDER_DETAIL =
