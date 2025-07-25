@@ -79,6 +79,28 @@ public final class Queries {
         """;
 
     /**
+     * Find the Restaurant with the most orders.
+     */
+    public static final String FIND_RESTAURANT_MOST_ORDERS =
+        """
+        SELECT r.*,COUNT(o.nome_attività) AS "numero_ordini"
+        FROM RISTORANTI r, ORDINI o
+        WHERE r.nome_attività = o.nome_attività
+        GROUP BY o.nome_attività ORDER BY numero_ordini DESC LIMIT 1;
+        """;
+
+    /**
+     * Find the Restaurant with the most negative reviews.
+     */
+    public static final String FIND_RESTAURANT_MOST_NEGATIVE_REVIEWS =
+        """
+        SELECT ris.*,AVG(CAST(CAST(rec.voto AS CHAR) AS INT)) AS average
+        FROM RISTORANTI ris, RECENSIONI rec
+        WHERE ris.nome_attività = rec.nome_attività
+        GROUP BY rec.nome_attività ORDER BY average ASC LIMIT 1;
+        """;
+
+    /**
      * Find a FoodType by its name.
      */
     public static final String FIND_FOOD_TYPE =
