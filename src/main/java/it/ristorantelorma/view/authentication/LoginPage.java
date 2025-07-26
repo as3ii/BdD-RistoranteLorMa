@@ -1,6 +1,9 @@
-package it.ristorantelorma.view;
+package it.ristorantelorma.view.authentication;
 
 import javax.swing.*;
+
+import it.ristorantelorma.view.FirstPage;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,7 +19,6 @@ public class LoginPage {
     private static final Font BUTTON_FONT = new Font("Arial", Font.PLAIN, 12);
     private static final Dimension FIELD_DIMENSION = new Dimension(150, 25);
     private static final Dimension BUTTON_DIMENSION = new Dimension(80, 30);
-    private static final int PADDING = 20;
     
     private final JFrame mainFrame;
     private final JTextField usernameField;

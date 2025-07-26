@@ -1,4 +1,4 @@
-package it.ristorantelorma.view;
+package it.ristorantelorma.view.authentication;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -13,6 +13,9 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import it.ristorantelorma.view.FirstPage;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
