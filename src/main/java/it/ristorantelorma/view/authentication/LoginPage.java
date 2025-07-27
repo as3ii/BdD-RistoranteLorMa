@@ -2,7 +2,8 @@ package it.ristorantelorma.view.authentication;
 
 import javax.swing.*;
 
-import it.ristorantelorma.view.FirstPage;
+import it.ristorantelorma.view.delivery.FirstPage;
+import it.ristorantelorma.view.customer.RestaurantsPage;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -149,6 +150,22 @@ public class LoginPage {
         
         System.out.println("Tentativo di login con username: " + username);
         // TODO: Implementare la logica di autenticazione
+
+        // Esempio: login sempre valido (sostituisci con la tua logica)
+        boolean loginValido = true; // Sostituisci con controllo reale
+
+        if (loginValido) {
+            this.hide();
+            SwingUtilities.invokeLater(() -> {
+                RestaurantsPage restaurantsPage = new RestaurantsPage();
+                restaurantsPage.setVisible(true);
+            });
+        } else {
+            JOptionPane.showMessageDialog(this.mainFrame, 
+                "Username o password errati!", 
+                "Errore", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     /**

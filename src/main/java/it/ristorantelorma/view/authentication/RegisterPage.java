@@ -14,7 +14,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import it.ristorantelorma.view.FirstPage;
+import it.ristorantelorma.view.delivery.FirstPage;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

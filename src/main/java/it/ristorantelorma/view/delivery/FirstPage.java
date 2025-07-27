@@ -1,4 +1,4 @@
-package it.ristorantelorma.view;
+package it.ristorantelorma.view.delivery;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -8,6 +8,9 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import it.ristorantelorma.view.authentication.LoginPage;
+import it.ristorantelorma.view.authentication.RegisterPage;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -205,7 +208,10 @@ public class FirstPage {
     }
 }
 /* # Prima compila il progetto (dalla directory root del progetto)
-javac -d target/classes -cp src/main/java src/main/java/it/ristorantelorma/view/FirstPage.java
+togli i caratteri di escape :) 
+javac -d target/classes -cp src/main/java src/main/java/it/ristorantelorma/view\/*\/*
 
 # Poi esegui la classe con il classpath corretto
-java -cp target/classes it.ristorantelorma.view.FirstPage */
+java -cp target/classes it.ristorantelorma.view.delivery.FirstPage  
+
+*/
