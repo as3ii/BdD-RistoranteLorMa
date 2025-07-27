@@ -1,7 +1,7 @@
 package it.ristorantelorma.model;
 
 /**
- * this enum represet the possible macro-types.
+ * This enum represent the possible macro-types.
  */
 public enum MacroType {
     /**

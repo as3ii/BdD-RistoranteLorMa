@@ -188,12 +188,19 @@ public abstract class Order {
         }
 
         /**
-         *
+         * Get the list of foods for the given Order.
          * @param connection
-         * @param id
+         * @param order
          * @return Map<Food,Integer> if no error is encountered, error otherwise
          */
         public static Result<Map<Food, Integer>> getFoodList(
+             final Connection connection,
+             final Order order
+         ) {
+             return getFoodList(connection, order.getId());
+         }
+
+        static Result<Map<Food, Integer>> getFoodList(
             final Connection connection,
             final int id
         ) {
@@ -550,7 +557,7 @@ public abstract class Order {
          * @param client
          * @param foodRequested
          * @return the WaitingOrder if it has been correctly added, empty otherwise
-         * @throws IllegalStateException if the retrival of the record ID fails
+         * @throws IllegalStateException if the retrieval of the record ID fails
          */
         public static Result<WaitingOrder> insert(
             final Connection connection,
@@ -593,7 +600,7 @@ public abstract class Order {
                             );
                         } else {
                             final String errorMessage =
-                                "Insertion of Order seams complete but the retrival of the record ID failed";
+                                "Insertion of Order seams complete but the retrieval of the record ID failed";
                             LOGGER.log(Level.SEVERE, errorMessage);
                             throw new IllegalStateException(errorMessage);
                         }

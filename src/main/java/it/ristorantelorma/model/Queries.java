@@ -35,6 +35,16 @@ public final class Queries {
         """;
 
     /**
+     * Find the deliveryman with more deliveries.
+     */
+    public static final String FIND_DELIVERYMAN_WITH_MORE_DELIVERIES =
+        """
+        SELECT u.*,COUNT(o.username_fattorino) AS "numero_ordini"
+        FROM UTENTI u, ORDINI o
+        WHERE u.username = o.username_fattorino AND ora_consegna IS NOT NULL
+        GROUP BY o.username_fattorino ORDER BY numero_ordini DESC LIMIT 1;
+        """;
+    /**
      * Find a Restaurant by its name.
      */
     public static final String FIND_RESTAURANT_BY_NAME =
@@ -69,6 +79,28 @@ public final class Queries {
         """;
 
     /**
+     * Find the Restaurant with the most orders.
+     */
+    public static final String FIND_RESTAURANT_MOST_ORDERS =
+        """
+        SELECT r.*,COUNT(o.nome_attività) AS "numero_ordini"
+        FROM RISTORANTI r, ORDINI o
+        WHERE r.nome_attività = o.nome_attività
+        GROUP BY o.nome_attività ORDER BY numero_ordini DESC LIMIT 1;
+        """;
+
+    /**
+     * Find the Restaurant with the most negative reviews.
+     */
+    public static final String FIND_RESTAURANT_MOST_NEGATIVE_REVIEWS =
+        """
+        SELECT ris.*,AVG(CAST(CAST(rec.voto AS CHAR) AS INT)) AS average
+        FROM RISTORANTI ris, RECENSIONI rec
+        WHERE ris.nome_attività = rec.nome_attività
+        GROUP BY rec.nome_attività ORDER BY average ASC LIMIT 1;
+        """;
+
+    /**
      * Find a FoodType by its name.
      */
     public static final String FIND_FOOD_TYPE =
@@ -97,7 +129,7 @@ public final class Queries {
     /**
      * Find the most purchased FoodType.
      */
-    public static final String FIND_FOOD_TYPE_MOST_BUYED =
+    public static final String FIND_FOOD_TYPE_MOST_PURCHASED =
         """
         SELECT t.*,SUM(d.quantità) AS "totale"
         FROM TIPO_VIVANDE t, VIVANDE v, DETTAGLIO_ORDINI d
@@ -149,6 +181,17 @@ public final class Queries {
         """
         SELECT * FROM DETTAGLIO_ORDINI
         WHERE codice_ordine = ?;
+        """;
+
+    /**
+     * Find the most purchased Food.
+     */
+    public static final String FIND_FOOD_MOST_PURCHASED =
+        """
+        SELECT v.*,SUM(d.quantità) AS "quantità_totale"
+        FROM VIVANDE v, DETTAGLIO_ORDINI d
+        WHERE v.codice = d.codice_vivanda
+        GROUP BY codice_vivanda ORDER BY quantità_totale DESC LIMIT 1;
         """;
 
     /**

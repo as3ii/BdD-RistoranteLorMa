@@ -31,7 +31,7 @@ public final class Result<T> {
 
     /**
      * Returns a Result with the specified non-null error message.
-     * @param <T> the class of the non-existant value
+     * @param <T> the class of the non-existent value
      * @param errorMessage the error message to be present, which must be non-null
      * @return a Result with the value present
      * @throws NullPointerException if errorMessage is null

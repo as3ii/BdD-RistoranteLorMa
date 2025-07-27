@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -90,7 +91,9 @@ public final class FoodType {
         private static final Logger LOGGER = SimpleLogger.getLogger(CLASS_NAME);
 
         private DAO() {
-            throw new UnsupportedOperationException("Utility class and cannot be instantiated");
+            throw new UnsupportedOperationException(
+                "Utility class and cannot be instantiated"
+            );
         }
 
         /**
@@ -248,16 +251,16 @@ public final class FoodType {
         /**
          * Find the most purchased FoodType.
          * @param connection
-         * @return a pair <FoodType, Integer> if there are no erorrs
+         * @return a pair <FoodType, Integer> if there are no errors
          * @throws IllegalArgumentException if an invalid MacroType enum is returned from the query
          */
-        public static Result<
-            SimpleImmutableEntry<FoodType, Integer>
-        > getMostBuyed(final Connection connection) {
+        public static Result<Entry<FoodType, Integer>> getMostPurchased(
+            final Connection connection
+        ) {
             try (
                 PreparedStatement statement = DBHelper.prepare(
                     connection,
-                    Queries.FIND_FOOD_TYPE_MOST_BUYED
+                    Queries.FIND_FOOD_TYPE_MOST_PURCHASED
                 );
                 ResultSet result = statement.executeQuery();
             ) {
@@ -292,7 +295,8 @@ public final class FoodType {
                     return Result.failure(errorMessage);
                 }
             } catch (SQLException e) {
-                final String errorMessage = "Failed getting most purchased FoodType";
+                final String errorMessage =
+                    "Failed getting most purchased FoodType";
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 return Result.failure(errorMessage);
             }
