@@ -1,11 +1,16 @@
 package it.ristorantelorma.view.customer;
 
+import it.ristorantelorma.view.authentication.LoginPage;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class RestaurantsPage extends JFrame {
 
-    public RestaurantsPage() {
+    private final LoginPage loginPage;
+
+    public RestaurantsPage(LoginPage loginPage) {
+        this.loginPage = loginPage;
         setTitle("RestaurantsPage");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 500);
@@ -66,9 +71,17 @@ public class RestaurantsPage extends JFrame {
         // Bottone Logout
         JPanel buttonPanel = new JPanel();
         JButton logoutButton = new JButton("Logout");
+        logoutButton.addActionListener(e -> handleLogout());
         buttonPanel.add(logoutButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
+    }
+
+    private void handleLogout() {
+        this.setVisible(false); // Chiude la finestra RestaurantsPage
+        loginPage.handleReset(); // Resetta i campi di LoginPage
+        loginPage.show(); // Mostra la finestra di LoginPage
+        
     }
 }
