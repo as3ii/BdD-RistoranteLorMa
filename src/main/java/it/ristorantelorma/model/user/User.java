@@ -345,10 +345,7 @@ public abstract class User {
          * @return Optional.of(User) if it was found, Optional.empty() if no User was found, error message otherwise
          * @throws IllegalArgumentException if an invalid role enum is returned from the query
          */
-        static Result<Optional<User>> find(
-            final Connection connection,
-            final String username
-        ) {
+        public static Result<Optional<User>> find(final Connection connection, final String username) {
             try (
                 PreparedStatement statement = DBHelper.prepare(
                     connection,
