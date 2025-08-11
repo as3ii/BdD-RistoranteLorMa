@@ -29,7 +29,13 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.function.Consumer;
+import javax.swing.JOptionPane;
+import it.ristorantelorma.model.Queries;
 
 /**
  * Rappresenta la pagina di registrazione dell'applicazione.
@@ -52,6 +58,9 @@ public class RegisterPage {
     private final JTextField viaField;
     private final JTextField civicoField;
     private final JTextField cittaField;
+    private final JTextField telefonoField;
+    private final JTextField emailField;
+    private final JTextField creditoField;
     private final JCheckBox deliveryManCheckBox;
     private JButton registerButton; // aggiungi questo campo
 
@@ -70,7 +79,10 @@ public class RegisterPage {
         this.viaField = new JTextField(15);
         this.civicoField = new JTextField(15);
         this.cittaField = new JTextField(15);
-        this.deliveryManCheckBox = new JCheckBox("Register as a delivery man");
+        this.telefonoField = new JTextField(15);
+        this.emailField = new JTextField(15);
+        this.creditoField = new JTextField(15);
+        this.deliveryManCheckBox = new JCheckBox("Registrati come fattorino");
         initializeFrame();
         initializeUI();
     }
@@ -121,10 +133,13 @@ public class RegisterPage {
             addFormField(formPanel, gbc, "Via:", viaField, 4);
             addFormField(formPanel, gbc, "Civico:", civicoField, 5);
             addFormField(formPanel, gbc, "Città:", cittaField, 6);
+            addFormField(formPanel, gbc, "Telefono:", telefonoField, 7);
+            addFormField(formPanel, gbc, "Email:", emailField, 8);
+            addFormField(formPanel, gbc, "Credito:", creditoField, 9);
 
             // Checkbox per delivery man
             gbc.gridx = 0;
-            gbc.gridy = 7;
+            gbc.gridy = 10;
             gbc.gridwidth = 2;
             gbc.anchor = GridBagConstraints.CENTER;
             formPanel.add(deliveryManCheckBox, gbc);
@@ -132,7 +147,7 @@ public class RegisterPage {
             // Pannello per i bottoni
             final JPanel buttonPanel = createButtonPanel();
             gbc.gridx = 0;
-            gbc.gridy = 8;
+            gbc.gridy = 11;
             gbc.gridwidth = 2;
             gbc.fill = GridBagConstraints.HORIZONTAL;
             formPanel.add(buttonPanel, gbc);
@@ -140,7 +155,7 @@ public class RegisterPage {
             container.add(formPanel, BorderLayout.CENTER);
         });
 
-        this.mainFrame.setSize(500, 600);
+        this.mainFrame.setSize(500, 700);
 
         // Aggiungi i listener per abilitare/disabilitare il bottone Register
         DocumentListener docListener = new DocumentListener() {
@@ -155,6 +170,9 @@ public class RegisterPage {
         viaField.getDocument().addDocumentListener(docListener);
         civicoField.getDocument().addDocumentListener(docListener);
         cittaField.getDocument().addDocumentListener(docListener);
+        telefonoField.getDocument().addDocumentListener(docListener);
+        emailField.getDocument().addDocumentListener(docListener);
+        creditoField.getDocument().addDocumentListener(docListener);
         deliveryManCheckBox.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
@@ -175,7 +193,7 @@ public class RegisterPage {
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.EAST;
         final JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.PLAIN, 14));
+        label.setFont(new Font("SansSerif", Font.PLAIN, 14));
         panel.add(label, gbc);
 
         gbc.gridx = 1;
@@ -262,7 +280,10 @@ public class RegisterPage {
             !passwordField.getText().trim().isEmpty() &&
             !viaField.getText().trim().isEmpty() &&
             !civicoField.getText().trim().isEmpty() &&
-            !cittaField.getText().trim().isEmpty();
+            !cittaField.getText().trim().isEmpty() &&
+            !telefonoField.getText().trim().isEmpty() &&
+            !emailField.getText().trim().isEmpty() &&
+            !creditoField.getText().trim().isEmpty();
         if (registerButton != null) {
             registerButton.setEnabled(allFilled);
         }
@@ -272,16 +293,56 @@ public class RegisterPage {
      * Gestisce il click del bottone Register.
      */
     private void handleRegisterButtonClick() {
-        System.out.println("Registrazione effettuata!");
-        System.out.println("Username: " + usernameField.getText());
-        System.out.println("Nome: " + nomeField.getText());
-        System.out.println("Cognome: " + cognomeField.getText());
-        System.out.println("Password: " + passwordField.getText());
-        System.out.println("Via: " + viaField.getText());
-        System.out.println("Civico: " + civicoField.getText());
-        System.out.println("Città: " + cittaField.getText());
-        System.out.println("Delivery Man: " + deliveryManCheckBox.isSelected());
-        // TODO: Implementare la logica di registrazione nel database
+        // Raccogli i dati dai campi
+        String username = usernameField.getText().trim();
+        String nome = nomeField.getText().trim();
+        String cognome = cognomeField.getText().trim();
+        String password = passwordField.getText().trim();
+        String via = viaField.getText().trim();
+        String civico = civicoField.getText().trim();
+        String citta = cittaField.getText().trim();
+        String telefono = telefonoField.getText().trim();
+        String email = emailField.getText().trim();
+        double credito = 0.0;
+        try {
+            credito = Double.parseDouble(creditoField.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(mainFrame, "Credito non valido.", "Errore", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        boolean isDeliveryMan = deliveryManCheckBox.isSelected();
+        String ruolo = isDeliveryMan ? "fattorino" : "cliente";
+
+        String url = "jdbc:mysql://localhost:3306/app_ristoranti";
+        String user = "root"; // Sostituisci con il tuo utente MySQL
+        String pass = "1234"; // Sostituisci con la tua password MySQL
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement stmt = conn.prepareStatement(Queries.INSERT_USER)) {
+
+            stmt.setString(1, nome);
+            stmt.setString(2, cognome);
+            stmt.setString(3, username);
+            stmt.setString(4, password);
+            stmt.setString(5, telefono);
+            stmt.setString(6, email);
+            stmt.setString(7, citta);
+            stmt.setString(8, via);
+            stmt.setString(9, civico);
+            stmt.setDouble(10, credito);
+            stmt.setString(11, ruolo);
+
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(mainFrame, "Registrazione avvenuta con successo!", "Successo", JOptionPane.INFORMATION_MESSAGE);
+                handleResetButtonClick();
+            } else {
+                JOptionPane.showMessageDialog(mainFrame, "Registrazione fallita.", "Errore", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(mainFrame, "Errore durante la registrazione: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -295,6 +356,9 @@ public class RegisterPage {
         viaField.setText("");
         civicoField.setText("");
         cittaField.setText("");
+        telefonoField.setText("");
+        emailField.setText("");
+        creditoField.setText("");
         deliveryManCheckBox.setSelected(false);
         System.out.println("Campi resettati!");
     }
