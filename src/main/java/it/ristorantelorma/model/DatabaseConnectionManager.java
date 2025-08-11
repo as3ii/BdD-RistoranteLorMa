@@ -22,7 +22,7 @@ public final class DatabaseConnectionManager {
     private static final int DEFAULT_PORT = 3306;
     private static final String DEFAULT_DBNAME = "APP_RISTORANTI";
     private static final String DEFAULT_USER = "root";
-    private static final String DEFAULT_PASSWORD = "";
+    private static final String DEFAULT_PASSWORD = "1234";
 
     private static final class LazyConnectionManager {
         private static final DatabaseConnectionManager DB = new DatabaseConnectionManager();
@@ -44,7 +44,7 @@ public final class DatabaseConnectionManager {
         final String user = env.getOrDefault("DB_USER", DEFAULT_USER);
         final String password = env.getOrDefault("DB_PASSWORD", DEFAULT_PASSWORD);
 
-        final String url = String.format("jdbc:mysql://%s:%i/%s", hostname, port, dbName);
+        final String url = String.format("jdbc:mysql://%s:%d/%s", hostname, port, dbName);
 
         try {
             logger.log(Level.INFO, "Connecting to " + url);

@@ -16,6 +16,8 @@ public final class RistoranteLorMa {
      * @param args command-line arguments
      */
     public static void main(final String[] args) {
-        // TODO
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            new it.ristorantelorma.view.delivery.FirstPage().show();
+        });
     }
 }
