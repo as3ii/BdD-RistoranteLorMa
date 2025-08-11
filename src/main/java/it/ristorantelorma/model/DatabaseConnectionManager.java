@@ -44,7 +44,7 @@ public final class DatabaseConnectionManager {
         final String user = env.getOrDefault("DB_USER", DEFAULT_USER);
         final String password = env.getOrDefault("DB_PASSWORD", DEFAULT_PASSWORD);
 
-        final String url = String.format("jdbc:mysql://%s:%i/%s", hostname, port, dbName);
+        final String url = String.format("jdbc:mysql://%s:%d/%s", hostname, port, dbName);
 
         try {
             logger.log(Level.INFO, "Connecting to " + url);
