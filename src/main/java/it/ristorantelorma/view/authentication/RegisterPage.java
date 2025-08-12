@@ -92,7 +92,7 @@ public class RegisterPage {
      */
     private void initializeFrame() {
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.mainFrame.setSize(500, 600);
+        this.mainFrame.setSize(600, 600);
         this.mainFrame.setLocationRelativeTo(null);
         this.mainFrame.setResizable(false);
     }
@@ -213,13 +213,15 @@ public class RegisterPage {
         this.registerButton = createButton("Register"); // usa il campo
         final JButton resetButton = createButton("Reset");
         final JButton backButton = createButton("Back");
-
-        panel.add(Box.createHorizontalGlue());
+        final JButton registerRestaurantButton = createButton("Registrati come Ristorante");
+        panel.add(Box.createRigidArea(new Dimension(10, 0)));
         panel.add(registerButton);
         panel.add(Box.createRigidArea(new Dimension(10, 0)));
         panel.add(resetButton);
         panel.add(Box.createRigidArea(new Dimension(10, 0)));
         panel.add(backButton);
+        panel.add(Box.createRigidArea(new Dimension(10, 0)));
+        panel.add(registerRestaurantButton);
         panel.add(Box.createHorizontalGlue());
 
         return panel;
@@ -262,6 +264,9 @@ public class RegisterPage {
                     break;
                 case "Back":
                     handleBackButtonClick();
+                    break;
+                case "Registrati come Ristorante":
+                    handleRegisterRestaurantButtonClick();
                     break;
             }
         });
@@ -365,6 +370,26 @@ public class RegisterPage {
     private void handleBackButtonClick() {
         this.hide();
         this.parentPage.show();
+    }
+
+    /**
+     * Gestisce il click del bottone "Registrati come Ristorante".
+     */
+    private void handleRegisterRestaurantButtonClick() {
+        this.hide();
+        new RegisterRestaurantPage(
+            this.parentPage,
+            this,
+            usernameField.getText().trim(),
+            nomeField.getText().trim(),
+            cognomeField.getText().trim(),
+            passwordField.getText().trim(),
+            viaField.getText().trim(),
+            civicoField.getText().trim(),
+            cittaField.getText().trim(),
+            telefonoField.getText().trim(),
+            emailField.getText().trim()
+        ).show();
     }
 
     /**

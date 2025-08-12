@@ -366,7 +366,7 @@ public final class Restaurant {
                 }
             } catch (SQLException e) {
                 final String errorMessage =
-                    "Failed insertion of restaurant: " + restaurantName;
+                    "Failed insertion of restaurant: " + restaurantName + " - " + e.getMessage();
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 return Result.failure(errorMessage);
             }

@@ -66,7 +66,7 @@ public final class Queries {
     public static final String INSERT_RESTAURANT =
         """
         INSERT INTO RISTORANTI
-        (username, nome_attività, p_va, ora_apertura, ora_chiusura)
+        (username, nome_attività, p_iva, ora_apertura, ora_chiusura)
         VALUES (?, ?, ?, ?, ?);
         """;
 
