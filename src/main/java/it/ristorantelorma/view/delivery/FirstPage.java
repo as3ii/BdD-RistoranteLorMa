@@ -101,7 +101,7 @@ public class FirstPage {
             // Aggiunge il pannello dei bottoni al centro del frame principale
             container.add(buttonPanel, BorderLayout.CENTER);
         });
-        
+
         // Ridimensiona la finestra per adattarsi al contenuto
         this.mainFrame.setSize(400, 300);
     }
@@ -168,7 +168,6 @@ public class FirstPage {
      * Apre la pagina di login.
      */
     private void handleLoginButtonClick() {
-        System.out.println("Bottone Login cliccato!");
         this.hide();
         new LoginPage(this).show();
     }
@@ -178,7 +177,6 @@ public class FirstPage {
      * Per ora stampa solo un messaggio nella console.
      */
     private void handleRegisterButtonClick() {
-        System.out.println("Bottone Registrati cliccato!");
         this.hide();
         new RegisterPage(this).show();
     }
@@ -208,10 +206,10 @@ public class FirstPage {
     }
 }
 /* # Prima compila il progetto (dalla directory root del progetto)
-togli i caratteri di escape :) 
+togli i caratteri di escape :)
 javac -d target/classes -cp src/main/java src/main/java/it/ristorantelorma/view\/*\/*
 
 # Poi esegui la classe con il classpath corretto
-java -cp target/classes it.ristorantelorma.view.delivery.FirstPage  
+java -cp target/classes it.ristorantelorma.view.delivery.FirstPage
 
 */
