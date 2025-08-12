@@ -18,7 +18,6 @@ import it.ristorantelorma.view.delivery.FirstPage;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -30,11 +29,12 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.function.Consumer;
 import javax.swing.JOptionPane;
+
+import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Queries;
 
 /**
@@ -313,11 +313,7 @@ public class RegisterPage {
         boolean isDeliveryMan = deliveryManCheckBox.isSelected();
         String ruolo = isDeliveryMan ? "fattorino" : "cliente";
 
-        String url = "jdbc:mysql://localhost:3306/app_ristoranti";
-        String user = "root"; // Sostituisci con il tuo utente MySQL
-        String pass = "1234"; // Sostituisci con la tua password MySQL
-
-        try (Connection conn = DriverManager.getConnection(url, user, pass);
+        try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(Queries.INSERT_USER)) {
 
             stmt.setString(1, nome);
