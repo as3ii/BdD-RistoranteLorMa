@@ -47,6 +47,7 @@ public class RegisterPage {
     private static final Color BUTTON_TEXT_COLOR = Color.WHITE;
     private static final int BUTTON_FONT_SIZE = 14;
     private static final Dimension BUTTON_DIMENSION = new Dimension(120, 35);
+    private static final Dimension BUTTON_RISTORANTE_DIMENSION = new Dimension(220, 35);
     private static final int PADDING = 20;
 
     private final JFrame mainFrame;
@@ -92,7 +93,7 @@ public class RegisterPage {
      */
     private void initializeFrame() {
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.mainFrame.setSize(600, 600);
+        this.mainFrame.setSize(800, 700);
         this.mainFrame.setLocationRelativeTo(null);
         this.mainFrame.setResizable(false);
     }
@@ -155,7 +156,7 @@ public class RegisterPage {
             container.add(formPanel, BorderLayout.CENTER);
         });
 
-        this.mainFrame.setSize(500, 700);
+        this.mainFrame.setSize(800, 700);
 
         // Aggiungi i listener per abilitare/disabilitare il bottone Register
         DocumentListener docListener = new DocumentListener() {
@@ -214,6 +215,8 @@ public class RegisterPage {
         final JButton resetButton = createButton("Reset");
         final JButton backButton = createButton("Back");
         final JButton registerRestaurantButton = createButton("Registrati come Ristorante");
+        registerRestaurantButton.setPreferredSize(BUTTON_RISTORANTE_DIMENSION);
+
         panel.add(Box.createRigidArea(new Dimension(10, 0)));
         panel.add(registerButton);
         panel.add(Box.createRigidArea(new Dimension(10, 0)));
