@@ -1,66 +1,67 @@
 package it.ristorantelorma.view.customer;
 
 import it.ristorantelorma.view.authentication.LoginPage;
+import it.ristorantelorma.model.Restaurant;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class RestaurantsPage extends JFrame {
 
     private final LoginPage loginPage;
 
-    public RestaurantsPage(LoginPage loginPage) {
+    public RestaurantsPage(LoginPage loginPage, Connection connection) {
         this.loginPage = loginPage;
         setTitle("RestaurantsPage");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 500);
         setLocationRelativeTo(null);
 
-        // Panel principale
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        // Lista ristoranti (nome e cucina)
-        String[][] data = {
-                { "Osteria dei Sapori", "Emiliana" },
-                { "Ristorante del Porto", "Frutti di mare" },
-                { "Ramen Bar", "Giapponese" },
-                { "Sushi Time", "Giapponese" },
-                { "Sushi Master", "Giapponese" },
-                { "Ristorante dei Sapori", "Italiana" },
-                { "Ristorante della Nonna", "Italiana" },
-                { "Trattoria da Mario", "Italiana" },
-                { "Ristorante da Genova", "Ligure" },
-                { "Ristorante Mare e Monti", "Mediterranea" },
-                { "La Taverna del Piemonte", "Piemontese" },
-                { "La Pizzeria di Napoli", "Pizza" },
-                { "Pizzeria di Franco", "Pizza" },
-                { "Trattoria Siciliana", "Siciliana" },
-                { "Ristorante del Sud", "Siciliana" },
-                { "Osteria Toscanella", "Toscana" },
-                { "Ristorante La Florentina", "Toscana" },
-                { "Eccomi Kebab", "Turca" },
-                { "La Trattoria di Venezia", "Veneta" }
-        };
-        String[] columns = { "", "" };
+        // Ottieni i ristoranti dal database
+        Collection<Restaurant> restaurants = new ArrayList<>();
+        var result = Restaurant.DAO.list(connection);
+        if (result.isSuccess()) {
+            restaurants = result.getValue();
+        } else {
+            JOptionPane.showMessageDialog(this, "Errore nel caricamento dei ristoranti: " + result.getErrorMessage());
+        }
+
+        // Prepara i dati per la tabella
+        String[][] data = new String[restaurants.size()][3];
+        int i = 0;
+        for (Restaurant r : restaurants) {
+            data[i][0] = r.getRestaurantName();
+            data[i][1] = formatTime(r.getOpeningTime()); // Solo orario
+            data[i][2] = formatTime(r.getClosingTime()); // Solo orario
+            i++;
+        }
+        String[] columns = { "Nome Attività", "Apertura", "Chiusura" };
 
         JTable table = new JTable(data, columns);
         table.setEnabled(false);
-        table.setRowSelectionAllowed(true); // Permetti selezione riga
+        table.setRowSelectionAllowed(true);
         table.setShowGrid(false);
         table.setTableHeader(null);
         table.setFont(new Font("Dialog", Font.PLAIN, 18));
         table.setRowHeight(28);
 
-        // Listener per click sulla riga
+        // Imposta larghezza colonne orario
+        table.getColumnModel().getColumn(1).setMinWidth(60);
+        table.getColumnModel().getColumn(1).setMaxWidth(70);
+        table.getColumnModel().getColumn(2).setMinWidth(60);
+        table.getColumnModel().getColumn(2).setMaxWidth(70);
+
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int row = table.rowAtPoint(evt.getPoint());
                 if (row >= 0) {
                     String restaurantName = data[row][0];
-                    String cuisine = data[row][1];
-                    // Apri la finestra ResMenu
-                    ResMenu resMenu = new ResMenu(restaurantName, cuisine);
-                    resMenu.setVisible(true);
+                    // Puoi aggiungere altre azioni qui se necessario
                 }
             }
         });
@@ -68,7 +69,6 @@ public class RestaurantsPage extends JFrame {
         JScrollPane scrollPane = new JScrollPane(table);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Bottone Logout
         JPanel buttonPanel = new JPanel();
         JButton logoutButton = new JButton("Logout");
         logoutButton.addActionListener(e -> handleLogout());
@@ -82,6 +82,11 @@ public class RestaurantsPage extends JFrame {
         this.setVisible(false); // Chiude la finestra RestaurantsPage
         loginPage.handleReset(); // Resetta i campi di LoginPage
         loginPage.show(); // Mostra la finestra di LoginPage
-        
+
+    }
+
+    private String formatTime(java.sql.Timestamp timestamp) {
+        if (timestamp == null) return "";
+        return timestamp.toLocalDateTime().toLocalTime().toString();
     }
 }

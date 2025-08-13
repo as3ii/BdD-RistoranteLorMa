@@ -178,7 +178,7 @@ public class LoginPage {
         if (loginValido) {
             this.hide();
             SwingUtilities.invokeLater(() -> {
-                RestaurantsPage restaurantsPage = new RestaurantsPage(this);
+                RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn);
                 restaurantsPage.setVisible(true);
             });
         } else {
