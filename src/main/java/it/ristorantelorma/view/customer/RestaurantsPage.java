@@ -12,9 +12,11 @@ import java.util.Collection;
 public class RestaurantsPage extends JFrame {
 
     private final LoginPage loginPage;
+    private final String username;
 
-    public RestaurantsPage(LoginPage loginPage, Connection connection) {
+    public RestaurantsPage(LoginPage loginPage, Connection connection, String username) {
         this.loginPage = loginPage;
+        this.username = username;
         setTitle("RestaurantsPage");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 500);
@@ -46,7 +48,7 @@ public class RestaurantsPage extends JFrame {
         String[] columns = { "Nome Attività", "Apertura", "Chiusura" };
 
         JTable table = new JTable(data, columns);
-        table.setEnabled(false);
+        table.setEnabled(true);
         table.setRowSelectionAllowed(true);
         table.setShowGrid(false);
         table.setTableHeader(null);
@@ -64,7 +66,12 @@ public class RestaurantsPage extends JFrame {
                 int row = table.rowAtPoint(evt.getPoint());
                 if (row >= 0) {
                     String restaurantName = data[row][0];
-                    // Puoi aggiungere altre azioni qui se necessario
+                    // Apri la finestra del menu del ristorante selezionato
+                    SwingUtilities.invokeLater(() -> {
+                        RestaurantsPage.this.setVisible(false);
+                        ResMenu resMenu = new ResMenu(restaurantName, RestaurantsPage.this, username); // passa lo username
+                        resMenu.setVisible(true);
+                    });
                 }
             }
         });
