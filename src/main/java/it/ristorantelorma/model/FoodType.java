@@ -118,7 +118,7 @@ public final class FoodType {
                 if (result.next()) {
                     final String typeStr = result.getString("tipologia");
                     final MacroType type;
-                    switch (typeStr) {
+                    switch (typeStr.toLowerCase()) {
                         case "cibo":
                             type = MacroType.DISH;
                             break;
@@ -166,7 +166,7 @@ public final class FoodType {
                     final String name = result.getString("nome");
                     final String typeStr = result.getString("tipologia");
                     final MacroType type;
-                    switch (typeStr) {
+                    switch (typeStr.toLowerCase()) {
                         case "cibo":
                             type = MacroType.DISH;
                             break;
@@ -268,7 +268,7 @@ public final class FoodType {
                     final String name = result.getString("nome");
                     final String typeStr = result.getString("tipologia");
                     final MacroType type;
-                    switch (typeStr) {
+                    switch (typeStr.toLowerCase()) {
                         case "cibo":
                             type = MacroType.DISH;
                             break;

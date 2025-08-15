@@ -167,25 +167,26 @@ public class LoginPage {
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+        User user;
         if (result.getValue().isPresent()) {
-            User user = result.getValue().get();
+            user = result.getValue().get();
             if (user.getPassword().equals(password)) {
                 loginValido = true;
+                this.hide();
+                SwingUtilities.invokeLater(() -> {
+                    if (user.getRole().name().equalsIgnoreCase("DELIVERYMAN")) {
+                        new it.ristorantelorma.view.deliveryman.DeliverymanPage(conn, username).setVisible(true);
+                    } else {
+                        RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username);
+                        restaurantsPage.setVisible(true);
+                    }
+                });
+            } else {
+                JOptionPane.showMessageDialog(this.mainFrame,
+                    "Username o password errati!",
+                    "Errore",
+                    JOptionPane.ERROR_MESSAGE);
             }
-        }
-
-        if (loginValido) {
-            this.hide();
-            SwingUtilities.invokeLater(() -> {
-                RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username); // passa lo username qui
-                restaurantsPage.setVisible(true);
-            });
-        } else {
-            JOptionPane.showMessageDialog(this.mainFrame,
-                "Username o password errati!",
-                "Errore",
-                JOptionPane.ERROR_MESSAGE);
         }
     }
 
