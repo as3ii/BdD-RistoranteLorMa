@@ -248,7 +248,7 @@ public final class Queries {
     public static final String SET_ORDER_DELIVERED =
         """
         UPDATE ORDINI
-        SET stato = 'pronto', ora_consegna = ?
+        SET stato = 'consegnato', ora_consegna = ?
         WHERE codice = ?;
         """;
 

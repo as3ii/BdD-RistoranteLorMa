@@ -156,6 +156,7 @@ public class DeliverymanPage extends JFrame {
             // Prepara i dati per la tabella
             String[][] data = new String[acceptedOrders.size()][5];
             int i = 0;
+            ArrayList<AcceptedOrder> acceptedOrdersList = new ArrayList<>(acceptedOrders);
             for (AcceptedOrder order : acceptedOrders) {
                 data[i][0] = String.valueOf(order.getId());
                 data[i][1] = order.getClient().getUsername();
@@ -173,8 +174,47 @@ public class DeliverymanPage extends JFrame {
             table.setFont(new Font("Dialog", Font.PLAIN, 16));
             table.setRowHeight(28);
 
-            // Puoi aggiungere qui un MouseListener per gestire la consegna dell'ordine
-            // Ad esempio, mostrare i dettagli e permettere di segnare come "consegnato"
+            table.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    int row = table.rowAtPoint(evt.getPoint());
+                    if (row >= 0) {
+                        AcceptedOrder order = acceptedOrdersList.get(row);
+                        var client = order.getClient();
+                        StringBuilder items = new StringBuilder();
+                        for (var entry : order.getFoodRequested().entrySet()) {
+                            items.append("- ").append(entry.getKey().getName())
+                                 .append(" x ").append(entry.getValue()).append("<br>");
+                        }
+                        String details = "<html><b>Ristorante:</b> " + order.getRestaurant().getRestaurantName() + "<br>"
+                            + "<b>Cliente:</b> " + client.getUsername() + "<br>"
+                            + "<b>Città:</b> " + client.getCity() + "<br>"
+                            + "<b>Via:</b> " + client.getStreet() + "<br>"
+                            + "<b>N. Civico:</b> " + client.getHouseNumber() + "<br>"
+                            + "<b>Piatti ordinati:</b><br>" + items
+                            + "<br><b>Accettato il:</b> " + order.getAcceptanceTime()
+                            + "<br><b>Compenso:</b> $" + order.getShippingRate() + "</html>";
+
+                        int scelta = JOptionPane.showConfirmDialog(
+                            null,
+                            details + "<br>Segna come consegnato?",
+                            "Consegna Ordine",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                        );
+                        if (scelta == JOptionPane.YES_OPTION) {
+                            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                            var deliverResult = it.ristorantelorma.model.order.DeliveredOrder.DAO.from(conn, order, now);
+                            if (deliverResult.isSuccess()) {
+                                JOptionPane.showMessageDialog(null, "Ordine consegnato!", "Conferma", JOptionPane.INFORMATION_MESSAGE);
+                                SwingUtilities.getWindowAncestor(table).dispose();
+                                viewAcceptedButton.doClick();
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Errore nella consegna: " + deliverResult.getErrorMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
+                }
+            });
 
             JDialog dialog = new JDialog(this, "Ordini da consegnare", true);
             dialog.setSize(500, 300);
