@@ -205,11 +205,3 @@ public class FirstPage {
         });
     }
 }
-/* # Prima compila il progetto (dalla directory root del progetto)
-togli i caratteri di escape :)
-javac -d target/classes -cp src/main/java src/main/java/it/ristorantelorma/view\/*\/*
-
-# Poi esegui la classe con il classpath corretto
-java -cp target/classes it.ristorantelorma.view.delivery.FirstPage
-
-*/
