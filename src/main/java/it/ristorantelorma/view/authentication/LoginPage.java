@@ -156,7 +156,7 @@ public class LoginPage {
         if (loginValido) {
             this.hide();
             SwingUtilities.invokeLater(() -> {
-                RestaurantsPage restaurantsPage = new RestaurantsPage();
+                RestaurantsPage restaurantsPage = new RestaurantsPage(this);
                 restaurantsPage.setVisible(true);
             });
         } else {
@@ -171,7 +171,7 @@ public class LoginPage {
      * Gestisce il click del bottone Reset.
      * Pulisce i campi di input.
      */
-    private void handleReset() {
+    public void handleReset() {
         this.usernameField.setText("");
         this.passwordField.setText("");
         this.usernameField.requestFocus();

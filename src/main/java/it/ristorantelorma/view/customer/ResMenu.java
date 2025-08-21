@@ -73,6 +73,11 @@ public class ResMenu extends JFrame {
         JButton sendOrderButton = new JButton("Send Order");
         sendOrderButton.setBackground(Color.RED);
         sendOrderButton.setForeground(Color.WHITE);
+
+        // Implementazione azioni bottoni
+        backButton.addActionListener(e -> System.out.println("cliccato bottone Back"));
+        sendOrderButton.addActionListener(e -> System.out.println("cliccato bottone Send Order"));
+
         buttonPanel.add(backButton);
         buttonPanel.add(sendOrderButton);
         menuPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -98,6 +103,10 @@ public class ResMenu extends JFrame {
         JButton reviewsButton = new JButton("Reviews");
         reviewsButton.setBackground(Color.BLUE);
         reviewsButton.setForeground(Color.WHITE);
+
+        // Implementazione azione bottone Reviews
+        reviewsButton.addActionListener(e -> System.out.println("cliccato bottone Reviews"));
+
         restaurantInfoPanel.add(reviewsButton);
 
         infoPanel.add(balanceLabel);
