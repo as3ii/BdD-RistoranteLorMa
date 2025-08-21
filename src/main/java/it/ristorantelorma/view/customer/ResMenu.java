@@ -10,13 +10,9 @@ import java.util.List;
 
 public class ResMenu extends JFrame {
 
-    private final RestaurantsPage restaurantsPage;
-    private final String username;
     private double balance;
 
     public ResMenu(String restaurantName, RestaurantsPage restaurantsPage, String username) {
-        this.restaurantsPage = restaurantsPage;
-        this.username = username;
         setTitle("DeliveryDB");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
@@ -230,7 +226,6 @@ public class ResMenu extends JFrame {
 
         // Dopo aver creato totalLabel:
         for (int i = 0; i < quantitySpinners.length; i++) {
-            final int index = i;
             quantitySpinners[i].addChangeListener(e -> {
                 double total = 0.0;
                 for (int j = 0; j < quantitySpinners.length; j++) {

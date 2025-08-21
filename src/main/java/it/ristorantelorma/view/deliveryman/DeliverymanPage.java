@@ -2,17 +2,13 @@ package it.ristorantelorma.view.deliveryman;
 
 import it.ristorantelorma.model.order.ReadyOrder;
 import it.ristorantelorma.model.order.AcceptedOrder;
-import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.user.DeliverymanUser;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Optional;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 
 public class DeliverymanPage extends JFrame {

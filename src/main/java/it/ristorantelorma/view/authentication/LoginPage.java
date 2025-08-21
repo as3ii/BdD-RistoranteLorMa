@@ -10,8 +10,6 @@ import java.util.Optional;
 import it.ristorantelorma.model.Result;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import it.ristorantelorma.model.DatabaseConnectionManager;
 
 /**

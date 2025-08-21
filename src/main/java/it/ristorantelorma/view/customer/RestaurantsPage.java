@@ -12,11 +12,9 @@ import java.util.Collection;
 public class RestaurantsPage extends JFrame {
 
     private final LoginPage loginPage;
-    private final String username;
 
     public RestaurantsPage(LoginPage loginPage, Connection connection, String username) {
         this.loginPage = loginPage;
-        this.username = username;
         setTitle("RestaurantsPage");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 500);
