@@ -153,8 +153,6 @@ public class LoginPage {
             return;
         }
 
-        System.out.println("Tentativo di login con username: " + username);
-
         boolean loginValido = false;
         Connection conn = DatabaseConnectionManager.getInstance().getConnection();
         Result<Optional<User>> result = User.DAO.find(conn, username);

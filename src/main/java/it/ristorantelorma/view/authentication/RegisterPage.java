@@ -356,7 +356,6 @@ public class RegisterPage {
         emailField.setText("");
         creditoField.setText("");
         deliveryManCheckBox.setSelected(false);
-        System.out.println("Campi resettati!");
     }
 
     /**

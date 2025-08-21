@@ -168,7 +168,6 @@ public class FirstPage {
      * Apre la pagina di login.
      */
     private void handleLoginButtonClick() {
-        System.out.println("Bottone Login cliccato!");
         this.hide();
         new LoginPage(this).show();
     }
@@ -178,7 +177,6 @@ public class FirstPage {
      * Per ora stampa solo un messaggio nella console.
      */
     private void handleRegisterButtonClick() {
-        System.out.println("Bottone Registrati cliccato!");
         this.hide();
         new RegisterPage(this).show();
     }
