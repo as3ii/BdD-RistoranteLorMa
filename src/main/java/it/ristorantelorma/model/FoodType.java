@@ -117,20 +117,7 @@ public final class FoodType {
             ) {
                 if (result.next()) {
                     final String typeStr = result.getString("tipologia");
-                    final MacroType type;
-                    switch (typeStr.toLowerCase()) {
-                        case "cibo":
-                            type = MacroType.DISH;
-                            break;
-                        case "bevanda":
-                            type = MacroType.DRINK;
-                            break;
-                        default:
-                            final String errorMessage =
-                                "Invalid MacroType value: " + typeStr;
-                            LOGGER.log(Level.SEVERE, errorMessage);
-                            throw new IllegalArgumentException(errorMessage);
-                    }
+                    final MacroType type = MacroType.fromString(typeStr);
                     return Result.success(
                         Optional.of(new FoodType(name, type))
                     );
@@ -165,20 +152,7 @@ public final class FoodType {
                 while (result.next()) {
                     final String name = result.getString("nome");
                     final String typeStr = result.getString("tipologia");
-                    final MacroType type;
-                    switch (typeStr.toLowerCase()) {
-                        case "cibo":
-                            type = MacroType.DISH;
-                            break;
-                        case "bevanda":
-                            type = MacroType.DRINK;
-                            break;
-                        default:
-                            final String errorMessage =
-                                "Invalid MacroType value: " + typeStr;
-                            LOGGER.log(Level.SEVERE, errorMessage);
-                            throw new IllegalArgumentException(errorMessage);
-                    }
+                    final MacroType type = MacroType.fromString(typeStr);
                     foodTypes.add(new FoodType(name, type));
                 }
                 return Result.success(foodTypes);
@@ -267,20 +241,7 @@ public final class FoodType {
                 if (result.next()) {
                     final String name = result.getString("nome");
                     final String typeStr = result.getString("tipologia");
-                    final MacroType type;
-                    switch (typeStr.toLowerCase()) {
-                        case "cibo":
-                            type = MacroType.DISH;
-                            break;
-                        case "bevanda":
-                            type = MacroType.DRINK;
-                            break;
-                        default:
-                            final String errorMessage =
-                                "Invalid MacroType value: " + typeStr;
-                            LOGGER.log(Level.SEVERE, errorMessage);
-                            throw new IllegalArgumentException(errorMessage);
-                    }
+                    final MacroType type = MacroType.fromString(typeStr);
                     final int count = result.getInt("totale");
                     return Result.success(
                         new SimpleImmutableEntry<>(
