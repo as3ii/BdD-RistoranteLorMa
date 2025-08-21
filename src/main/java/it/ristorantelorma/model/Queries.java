@@ -151,8 +151,8 @@ public final class Queries {
      */
     public static final String FIND_FOOD_BY_ID =
         """
-        SELECT * FROM VIVANTE
-        WHERE id = ?;
+        SELECT * FROM VIVANDE
+        WHERE codice = ?;
         """;
 
     /**

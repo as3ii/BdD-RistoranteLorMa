@@ -121,7 +121,7 @@ public class AcceptedOrder extends ReadyOrder {
             final Result<Order> res = Order.DAO.updateState(
                 connection,
                 order,
-                State.READY,
+                State.ACCEPTED,
                 acceptanceTime,
                 deliveryman.getUsername()
             );
