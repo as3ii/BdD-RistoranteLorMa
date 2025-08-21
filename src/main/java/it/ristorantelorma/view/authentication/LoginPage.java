@@ -4,10 +4,15 @@ import javax.swing.*;
 
 import it.ristorantelorma.view.delivery.FirstPage;
 import it.ristorantelorma.view.customer.RestaurantsPage;
+import it.ristorantelorma.model.user.User;
+import java.sql.Connection;
+import java.util.Optional;
+import it.ristorantelorma.model.Result;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import it.ristorantelorma.model.DatabaseConnectionManager;
 
 /**
  * Rappresenta la pagina di login dell'applicazione.
@@ -149,9 +154,27 @@ public class LoginPage {
         }
 
         System.out.println("Tentativo di login con username: " + username);
-        // TODO: Implementare la logica di autenticazione
 
-        boolean loginValido = true; // TODO: controllo reale
+        boolean loginValido = false;
+        Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+        Result<Optional<User>> result = User.DAO.find(conn, username);
+
+        if (!result.isSuccess()) {
+            JOptionPane.showMessageDialog(
+                this.mainFrame,
+                "Errore di connessione al database!\n" + result.getErrorMessage(),
+                "Errore",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        if (result.getValue().isPresent()) {
+            User user = result.getValue().get();
+            if (user.getPassword().equals(password)) {
+                loginValido = true;
+            }
+        }
 
         if (loginValido) {
             this.hide();
