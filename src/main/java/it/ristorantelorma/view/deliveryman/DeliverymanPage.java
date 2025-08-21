@@ -2,29 +2,33 @@ package it.ristorantelorma.view.deliveryman;
 
 import it.ristorantelorma.model.order.ReadyOrder;
 import it.ristorantelorma.model.order.AcceptedOrder;
+import it.ristorantelorma.model.order.DeliveredOrder;
 import it.ristorantelorma.model.user.DeliverymanUser;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Optional;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DeliverymanPage extends JFrame {
     private final JButton showOrdersButton;
     private final JButton viewAcceptedButton;
 
-    public DeliverymanPage(Connection conn, String username) {
+    public DeliverymanPage(final Connection conn, final String username) {
         super("DeliveryDB");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(400, 400);
         setLocationRelativeTo(null);
         setResizable(false);
 
         setLayout(new BorderLayout());
 
-        JPanel centerPanel = new JPanel();
+        final JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Color.WHITE);
 
@@ -40,8 +44,8 @@ public class DeliverymanPage extends JFrame {
 
         showOrdersButton.addActionListener(e -> {
             // Usa il DAO per ottenere gli ordini "pronto"
-            Collection<ReadyOrder> readyOrders;
-            var result = ReadyOrder.DAO.list(conn);
+            final Collection<ReadyOrder> readyOrders;
+            final var result = ReadyOrder.DAO.list(conn);
             if (result.isSuccess()) {
                 readyOrders = result.getValue();
             } else {
@@ -55,37 +59,38 @@ public class DeliverymanPage extends JFrame {
             }
 
             // Prepara i dati per la tabella
-            String[][] data = new String[readyOrders.size()][4];
+            final String[][] data = new String[readyOrders.size()][4];
             int i = 0;
-            ArrayList<ReadyOrder> readyOrdersList = new ArrayList<>(readyOrders); // <--- AGGIUNTA
-            for (ReadyOrder order : readyOrders) {
+            final List<ReadyOrder> readyOrdersList = new ArrayList<>(readyOrders);
+            for (final ReadyOrder order : readyOrders) {
                 data[i][0] = String.valueOf(order.getId());
                 data[i][1] = order.getClient().getUsername();
                 data[i][2] = order.getRestaurant().getRestaurantName();
                 data[i][3] = String.valueOf(order.getFoodRequested().size());
                 i++;
             }
-            String[] columns = { "ID Ordine", "Cliente", "Ristorante", "N. Piatti" };
+            final String[] columns = { "ID Ordine", "Cliente", "Ristorante", "N. Piatti" };
 
-            JTable table = new JTable(data, columns);
+            final JTable table = new JTable(data, columns);
             table.setEnabled(true);
             table.setRowSelectionAllowed(true);
             table.setShowGrid(false);
             table.setFont(new Font("Dialog", Font.PLAIN, 16));
             table.setRowHeight(28);
 
-            table.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    int row = table.rowAtPoint(evt.getPoint());
+            table.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(final MouseEvent evt) {
+                    final int row = table.rowAtPoint(evt.getPoint());
                     if (row >= 0) {
-                        ReadyOrder order = readyOrdersList.get(row);
-                        var client = order.getClient();
-                        StringBuilder items = new StringBuilder();
-                        for (var entry : order.getFoodRequested().entrySet()) {
+                        final ReadyOrder order = readyOrdersList.get(row);
+                        final var client = order.getClient();
+                        final StringBuilder items = new StringBuilder();
+                        for (final var entry : order.getFoodRequested().entrySet()) {
                             items.append("- ").append(entry.getKey().getName())
                                  .append(" x ").append(entry.getValue()).append("<br>");
                         }
-                        String details = "<html><b>Ristorante:</b> " + order.getRestaurant().getRestaurantName() + "<br>"
+                        final String details = "<html><b>Ristorante:</b> " + order.getRestaurant().getRestaurantName() + "<br>"
                             + "<b>Cliente:</b> " + client.getUsername() + "<br>"
                             + "<b>Città:</b> " + client.getCity() + "<br>"
                             + "<b>Via:</b> " + client.getStreet() + "<br>"
@@ -93,7 +98,7 @@ public class DeliverymanPage extends JFrame {
                             + "<b>Piatti ordinati:</b><br>" + items
                             + "<br><b>Compenso:</b> $" + order.getShippingRate() + "</html>";
 
-                        int scelta = JOptionPane.showConfirmDialog(
+                        final int scelta = JOptionPane.showConfirmDialog(
                             null,
                             details + "Sei sicuro di voler accettare l'ordine?",
                             "Accetta Ordine",
@@ -101,14 +106,14 @@ public class DeliverymanPage extends JFrame {
                             JOptionPane.QUESTION_MESSAGE
                         );
                         if (scelta == JOptionPane.YES_OPTION) {
-                            Timestamp now = new Timestamp(System.currentTimeMillis());
-                            Optional<DeliverymanUser> optDeliveryman = DeliverymanUser.DAO.find(conn, username).getValue();
+                            final Timestamp now = new Timestamp(System.currentTimeMillis());
+                            final Optional<DeliverymanUser> optDeliveryman = DeliverymanUser.DAO.find(conn, username).getValue();
                             if (optDeliveryman.isEmpty()) {
                                 JOptionPane.showMessageDialog(null, "Deliveryman non trovato!", "Errore", JOptionPane.ERROR_MESSAGE);
                                 return;
                             }
-                            DeliverymanUser deliveryman = optDeliveryman.get();
-                            var acceptResult = AcceptedOrder.DAO.from(conn, order, now, deliveryman);
+                            final DeliverymanUser deliveryman = optDeliveryman.get();
+                            final var acceptResult = AcceptedOrder.DAO.from(conn, order, now, deliveryman);
                             if (acceptResult.isSuccess()) {
                                 JOptionPane.showMessageDialog(null, "Ordine accettato!", "Conferma", JOptionPane.INFORMATION_MESSAGE);
                                 SwingUtilities.getWindowAncestor(table).dispose(); // Chiude la finestra degli ordini disponibili
@@ -121,19 +126,19 @@ public class DeliverymanPage extends JFrame {
                 }
             });
 
-            JDialog dialog = new JDialog(this, "Ordini disponibili", true);
+            final JDialog dialog = new JDialog(this, "Ordini disponibili", true);
             dialog.setSize(400, 300);
             dialog.setLocationRelativeTo(this);
 
-            JScrollPane scrollPane = new JScrollPane(table);
+            final JScrollPane scrollPane = new JScrollPane(table);
             dialog.add(scrollPane);
             dialog.setVisible(true);
         });
 
         viewAcceptedButton.addActionListener(e -> {
             // Ottieni gli ordini accettati dal DAO
-            Collection<AcceptedOrder> acceptedOrders;
-            var result = AcceptedOrder.DAO.list(conn);
+            final Collection<AcceptedOrder> acceptedOrders;
+            final var result = AcceptedOrder.DAO.list(conn);
             if (result.isSuccess()) {
                 // Filtra solo quelli del fattorino corrente
                 acceptedOrders = result.getValue().stream()
@@ -150,10 +155,10 @@ public class DeliverymanPage extends JFrame {
             }
 
             // Prepara i dati per la tabella
-            String[][] data = new String[acceptedOrders.size()][5];
+            final String[][] data = new String[acceptedOrders.size()][5];
             int i = 0;
-            ArrayList<AcceptedOrder> acceptedOrdersList = new ArrayList<>(acceptedOrders);
-            for (AcceptedOrder order : acceptedOrders) {
+            final List<AcceptedOrder> acceptedOrdersList = new ArrayList<>(acceptedOrders);
+            for (final AcceptedOrder order : acceptedOrders) {
                 data[i][0] = String.valueOf(order.getId());
                 data[i][1] = order.getClient().getUsername();
                 data[i][2] = order.getRestaurant().getRestaurantName();
@@ -161,27 +166,28 @@ public class DeliverymanPage extends JFrame {
                 data[i][4] = order.getAcceptanceTime().toString();
                 i++;
             }
-            String[] columns = { "ID Ordine", "Cliente", "Ristorante", "N. Piatti", "Accettato il" };
+            final String[] columns = { "ID Ordine", "Cliente", "Ristorante", "N. Piatti", "Accettato il" };
 
-            JTable table = new JTable(data, columns);
+            final JTable table = new JTable(data, columns);
             table.setEnabled(true);
             table.setRowSelectionAllowed(true);
             table.setShowGrid(false);
             table.setFont(new Font("Dialog", Font.PLAIN, 16));
             table.setRowHeight(28);
 
-            table.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    int row = table.rowAtPoint(evt.getPoint());
+            table.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(final MouseEvent evt) {
+                    final int row = table.rowAtPoint(evt.getPoint());
                     if (row >= 0) {
-                        AcceptedOrder order = acceptedOrdersList.get(row);
-                        var client = order.getClient();
-                        StringBuilder items = new StringBuilder();
-                        for (var entry : order.getFoodRequested().entrySet()) {
+                        final AcceptedOrder order = acceptedOrdersList.get(row);
+                        final var client = order.getClient();
+                        final StringBuilder items = new StringBuilder();
+                        for (final var entry : order.getFoodRequested().entrySet()) {
                             items.append("- ").append(entry.getKey().getName())
                                  .append(" x ").append(entry.getValue()).append("<br>");
                         }
-                        String details = "<html><b>Ristorante:</b> " + order.getRestaurant().getRestaurantName() + "<br>"
+                        final String details = "<html><b>Ristorante:</b> " + order.getRestaurant().getRestaurantName() + "<br>"
                             + "<b>Cliente:</b> " + client.getUsername() + "<br>"
                             + "<b>Città:</b> " + client.getCity() + "<br>"
                             + "<b>Via:</b> " + client.getStreet() + "<br>"
@@ -190,7 +196,7 @@ public class DeliverymanPage extends JFrame {
                             + "<br><b>Accettato il:</b> " + order.getAcceptanceTime()
                             + "<br><b>Compenso:</b> $" + order.getShippingRate() + "</html>";
 
-                        int scelta = JOptionPane.showConfirmDialog(
+                        final int scelta = JOptionPane.showConfirmDialog(
                             null,
                             details + "<br>Segna come consegnato?",
                             "Consegna Ordine",
@@ -198,8 +204,8 @@ public class DeliverymanPage extends JFrame {
                             JOptionPane.QUESTION_MESSAGE
                         );
                         if (scelta == JOptionPane.YES_OPTION) {
-                            java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
-                            var deliverResult = it.ristorantelorma.model.order.DeliveredOrder.DAO.from(conn, order, now);
+                            final Timestamp now = new Timestamp(System.currentTimeMillis());
+                            final var deliverResult = DeliveredOrder.DAO.from(conn, order, now);
                             if (deliverResult.isSuccess()) {
                                 JOptionPane.showMessageDialog(null, "Ordine consegnato!", "Conferma", JOptionPane.INFORMATION_MESSAGE);
                                 SwingUtilities.getWindowAncestor(table).dispose();
@@ -212,18 +218,18 @@ public class DeliverymanPage extends JFrame {
                 }
             });
 
-            JDialog dialog = new JDialog(this, "Ordini da consegnare", true);
+            final JDialog dialog = new JDialog(this, "Ordini da consegnare", true);
             dialog.setSize(500, 300);
             dialog.setLocationRelativeTo(this);
 
-            JScrollPane scrollPane = new JScrollPane(table);
+            final JScrollPane scrollPane = new JScrollPane(table);
             dialog.add(scrollPane);
             dialog.setVisible(true);
         });
     }
 
-    private JButton createButton(String text) {
-        JButton button = new JButton(text);
+    private JButton createButton(final String text) {
+        final JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.PLAIN, 12));
         button.setPreferredSize(new Dimension(160, 30));
         button.setFocusPainted(false);

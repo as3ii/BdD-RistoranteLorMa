@@ -3,6 +3,7 @@ package it.ristorantelorma.view.authentication;
 import javax.swing.*;
 
 import it.ristorantelorma.view.delivery.FirstPage;
+import it.ristorantelorma.view.deliveryman.DeliverymanPage;
 import it.ristorantelorma.view.customer.RestaurantsPage;
 import it.ristorantelorma.model.user.User;
 import java.sql.Connection;
@@ -37,7 +38,7 @@ public class LoginPage {
      *
      * @param parentPage la pagina principale da cui è stata aperta questa pagina
      */
-    public LoginPage(FirstPage parentPage) {
+    public LoginPage(final FirstPage parentPage) {
         this.parentPage = parentPage;
         this.mainFrame = new JFrame("DeliveryDB");
         this.usernameField = new JTextField();
@@ -67,14 +68,14 @@ public class LoginPage {
      */
     private void initializeUI() {
         this.mainFrame.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        final GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
 
         // Username label e field
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.EAST;
-        JLabel usernameLabel = new JLabel("Username:");
+        final JLabel usernameLabel = new JLabel("Username:");
         usernameLabel.setFont(LABEL_FONT);
         this.mainFrame.add(usernameLabel, gbc);
 
@@ -87,7 +88,7 @@ public class LoginPage {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.EAST;
-        JLabel passwordLabel = new JLabel("Password:");
+        final JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setFont(LABEL_FONT);
         this.mainFrame.add(passwordLabel, gbc);
 
@@ -101,7 +102,7 @@ public class LoginPage {
         gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(BACKGROUND_COLOR);
         buttonPanel.add(this.loginButton);
         buttonPanel.add(this.resetButton);
@@ -119,8 +120,8 @@ public class LoginPage {
      * @param text il testo del bottone
      * @return il JButton creato
      */
-    private JButton createButton(String text) {
-        JButton button = new JButton(text);
+    private JButton createButton(final String text) {
+        final JButton button = new JButton(text);
         button.setFont(BUTTON_FONT);
         button.setPreferredSize(BUTTON_DIMENSION);
         button.setFocusPainted(false);
@@ -140,8 +141,8 @@ public class LoginPage {
      * Gestisce il click del bottone Login.
      */
     private void handleLogin() {
-        String username = this.usernameField.getText();
-        String password = new String(this.passwordField.getPassword());
+        final String username = this.usernameField.getText();
+        final String password = new String(this.passwordField.getPassword());
 
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this.mainFrame,
@@ -151,8 +152,8 @@ public class LoginPage {
             return;
         }
 
-        Connection conn = DatabaseConnectionManager.getInstance().getConnection();
-        Result<Optional<User>> result = User.DAO.find(conn, username);
+        final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+        final Result<Optional<User>> result = User.DAO.find(conn, username);
 
         if (!result.isSuccess()) {
             JOptionPane.showMessageDialog(
@@ -165,14 +166,14 @@ public class LoginPage {
         }
 
         if (result.getValue().isPresent()) {
-            User user = result.getValue().get();
+            final User user = result.getValue().get();
             if (user.getPassword().equals(password)) {
                 this.hide();
                 SwingUtilities.invokeLater(() -> {
-                    if (user.getRole().name().equalsIgnoreCase("DELIVERYMAN")) {
-                        new it.ristorantelorma.view.deliveryman.DeliverymanPage(conn, username).setVisible(true);
+                    if ("DELIVERYMAN".equalsIgnoreCase(user.getRole().name())) {
+                        new DeliverymanPage(conn, username).setVisible(true);
                     } else {
-                        RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username);
+                        final RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username);
                         restaurantsPage.setVisible(true);
                     }
                 });

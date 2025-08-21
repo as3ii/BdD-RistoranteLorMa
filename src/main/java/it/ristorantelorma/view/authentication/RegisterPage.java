@@ -159,10 +159,19 @@ public class RegisterPage {
         this.mainFrame.setSize(800, 700);
 
         // Aggiungi i listener per abilitare/disabilitare il bottone Register
-        DocumentListener docListener = new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { updateRegisterButtonState(); }
-            public void removeUpdate(DocumentEvent e) { updateRegisterButtonState(); }
-            public void changedUpdate(DocumentEvent e) { updateRegisterButtonState(); }
+        final DocumentListener docListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateRegisterButtonState();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateRegisterButtonState();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateRegisterButtonState();
+            }
         };
         usernameField.getDocument().addDocumentListener(docListener);
         nomeField.getDocument().addDocumentListener(docListener);
@@ -281,7 +290,7 @@ public class RegisterPage {
      * Abilita il bottone Register solo se tutti i campi sono riempiti.
      */
     private void updateRegisterButtonState() {
-        boolean allFilled =
+        final boolean allFilled =
             !usernameField.getText().trim().isEmpty() &&
             !nomeField.getText().trim().isEmpty() &&
             !cognomeField.getText().trim().isEmpty() &&
@@ -302,24 +311,24 @@ public class RegisterPage {
      */
     private void handleRegisterButtonClick() {
         // Raccogli i dati dai campi
-        String username = usernameField.getText().trim();
-        String nome = nomeField.getText().trim();
-        String cognome = cognomeField.getText().trim();
-        String password = passwordField.getText().trim();
-        String via = viaField.getText().trim();
-        String civico = civicoField.getText().trim();
-        String citta = cittaField.getText().trim();
-        String telefono = telefonoField.getText().trim();
-        String email = emailField.getText().trim();
-        double credito = 0.0;
+        final String username = usernameField.getText().trim();
+        final String nome = nomeField.getText().trim();
+        final String cognome = cognomeField.getText().trim();
+        final String password = passwordField.getText().trim();
+        final String via = viaField.getText().trim();
+        final String civico = civicoField.getText().trim();
+        final String citta = cittaField.getText().trim();
+        final String telefono = telefonoField.getText().trim();
+        final String email = emailField.getText().trim();
+        final double credito;
         try {
             credito = Double.parseDouble(creditoField.getText().trim());
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(mainFrame, "Credito non valido.", "Errore", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        boolean isDeliveryMan = deliveryManCheckBox.isSelected();
-        String ruolo = isDeliveryMan ? "fattorino" : "cliente";
+        final boolean isDeliveryMan = deliveryManCheckBox.isSelected();
+        final String ruolo = isDeliveryMan ? "fattorino" : "cliente";
 
         try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(Queries.INSERT_USER)) {
@@ -336,7 +345,7 @@ public class RegisterPage {
             stmt.setDouble(10, credito);
             stmt.setString(11, ruolo);
 
-            int rows = stmt.executeUpdate();
+            final int rows = stmt.executeUpdate();
             if (rows > 0) {
                 JOptionPane.showMessageDialog(mainFrame, "Registrazione avvenuta con successo!", "Successo", JOptionPane.INFORMATION_MESSAGE);
                 handleResetButtonClick();

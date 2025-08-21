@@ -12,15 +12,15 @@ public class ResMenu extends JFrame {
 
     private double balance;
 
-    public ResMenu(String restaurantName, RestaurantsPage restaurantsPage, String username) {
+    public ResMenu(final String restaurantName, final RestaurantsPage restaurantsPage, final String username) {
         setTitle("DeliveryDB");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(900, 600);
         setLocationRelativeTo(null);
 
-        List<String[]> menuData = new ArrayList<>();
+        final List<String[]> menuData = new ArrayList<>();
         balance = 0.0;
-        Connection conn = null;
+        final Connection conn;
         try {
             conn = DatabaseConnectionManager.getInstance().getConnection();
             // Query vivande
@@ -32,14 +32,21 @@ public class ResMenu extends JFrame {
                 psVivande.setString(1, restaurantName);
                 rsVivande = psVivande.executeQuery();
                 while (rsVivande.next()) {
-                    String nome = rsVivande.getString("nome");
-                    String nome_attività = rsVivande.getString("nome_attività");
-                    String prezzo = rsVivande.getString("prezzo");
-                    menuData.add(new String[]{nome, nome_attività, prezzo});
+                    final String nome = rsVivande.getString("nome");
+                    final String prezzo = rsVivande.getString("prezzo");
+                    menuData.add(new String[]{nome, restaurantName, prezzo});
                 }
             } finally {
-                if (rsVivande != null) try { rsVivande.close(); } catch (SQLException ignore) {}
-                if (psVivande != null) try { psVivande.close(); } catch (SQLException ignore) {}
+                if (rsVivande != null) {
+                    try {
+                        rsVivande.close();
+                    } catch (SQLException ignore) {}
+                }
+                if (psVivande != null) {
+                    try {
+                        psVivande.close();
+                    } catch (SQLException ignore) {}
+                }
             }
 
             // Query saldo utente
@@ -54,8 +61,16 @@ public class ResMenu extends JFrame {
                     balance = rsSaldo.getDouble("credito");
                 }
             } finally {
-                if (rsSaldo != null) try { rsSaldo.close(); } catch (SQLException ignore) {}
-                if (psSaldo != null) try { psSaldo.close(); } catch (SQLException ignore) {}
+                if (rsSaldo != null) {
+                    try {
+                        rsSaldo.close();
+                    } catch (SQLException ignore) {}
+                }
+                if (psSaldo != null) {
+                    try {
+                        psSaldo.close();
+                    } catch (SQLException ignore) {}
+                }
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Errore nel caricamento dei dati vivande o saldo: " + e.getMessage());
@@ -63,22 +78,22 @@ public class ResMenu extends JFrame {
             //if (conn != null) try { conn.close(); } catch (SQLException ignore) {}
         }
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
+        final JPanel mainPanel = new JPanel(new BorderLayout());
 
-        JPanel menuPanel = new JPanel(new BorderLayout());
-        JPanel menuTablePanel = new JPanel();
+        final JPanel menuPanel = new JPanel(new BorderLayout());
+        final JPanel menuTablePanel = new JPanel();
         menuTablePanel.setLayout(new BoxLayout(menuTablePanel, BoxLayout.Y_AXIS));
 
-        JPanel header = new JPanel(new GridLayout(1, 4));
+        final JPanel header = new JPanel(new GridLayout(1, 4));
         header.add(new JLabel("Nome"));
         header.add(new JLabel("Nome Vivanda"));
         header.add(new JLabel("Quantità"));
         header.add(new JLabel("Prezzo"));
         menuTablePanel.add(header);
 
-        JSpinner[] quantitySpinners = new JSpinner[menuData.size()];
+        final JSpinner[] quantitySpinners = new JSpinner[menuData.size()];
         for (int i = 0; i < menuData.size(); i++) {
-            JPanel row = new JPanel(new GridLayout(1, 4));
+            final JPanel row = new JPanel(new GridLayout(1, 4));
             row.add(new JLabel(menuData.get(i)[0]));
             row.add(new JLabel(menuData.get(i)[1]));
             quantitySpinners[i] = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
@@ -87,14 +102,14 @@ public class ResMenu extends JFrame {
             menuTablePanel.add(row);
         }
 
-        JScrollPane menuScroll = new JScrollPane(menuTablePanel);
+        final JScrollPane menuScroll = new JScrollPane(menuTablePanel);
         menuScroll.setPreferredSize(new Dimension(500, 400));
         menuPanel.add(menuScroll, BorderLayout.CENTER);
 
         // Pulsanti Back e Send Order
-        JPanel buttonPanel = new JPanel();
-        JButton backButton = new JButton("Back");
-        JButton sendOrderButton = new JButton("Send Order");
+        final JPanel buttonPanel = new JPanel();
+        final JButton backButton = new JButton("Back");
+        final JButton sendOrderButton = new JButton("Send Order");
         sendOrderButton.setBackground(Color.RED);
         sendOrderButton.setForeground(Color.WHITE);
 
@@ -105,10 +120,10 @@ public class ResMenu extends JFrame {
         });
         sendOrderButton.addActionListener(e -> {
             double total = 0.0;
-            int[] quantities = new int[quantitySpinners.length];
+            final int[] quantities = new int[quantitySpinners.length];
             for (int i = 0; i < quantitySpinners.length; i++) {
                 quantities[i] = (Integer) quantitySpinners[i].getValue();
-                double price = Double.parseDouble(menuData.get(i)[2]);
+                final double price = Double.parseDouble(menuData.get(i)[2]);
                 total += quantities[i] * price;
             }
             if (total > balance) {
@@ -186,28 +201,28 @@ public class ResMenu extends JFrame {
         mainPanel.add(menuPanel, BorderLayout.CENTER);
 
         // --- DESTRA: Info, riepilogo, saldo ---
-        JPanel infoPanel = new JPanel();
+        final JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setPreferredSize(new Dimension(300, 400));
 
-        JLabel balanceLabel = new JLabel("Balance: $" + String.format("%.2f", balance));
-        JLabel orderSummaryLabel = new JLabel("Order Summary:");
-        JTextArea orderSummaryArea = new JTextArea(6, 20);
+        final JLabel balanceLabel = new JLabel("Balance: $" + String.format("%.2f", balance));
+        final JLabel orderSummaryLabel = new JLabel("Order Summary:");
+        final JTextArea orderSummaryArea = new JTextArea(6, 20);
         orderSummaryArea.setEditable(false);
-        JLabel totalLabel = new JLabel("Total: $0.0");
+        final JLabel totalLabel = new JLabel("Total: $0.0");
 
-        JPanel restaurantInfoPanel = new JPanel();
+        final JPanel restaurantInfoPanel = new JPanel();
         restaurantInfoPanel.setLayout(new BoxLayout(restaurantInfoPanel, BoxLayout.Y_AXIS));
         restaurantInfoPanel.add(new JLabel("Restaurant Info:"));
         restaurantInfoPanel.add(new JLabel("Restaurant: " + restaurantName));
         restaurantInfoPanel.add(new JLabel("Opening Hours: 12:30 - 22:30"));
-        JButton reviewsButton = new JButton("Reviews");
+        final JButton reviewsButton = new JButton("Reviews");
         reviewsButton.setBackground(Color.BLUE);
         reviewsButton.setForeground(Color.WHITE);
 
         // Implementazione azione bottone Reviews
         reviewsButton.addActionListener(e -> {
-            ReviewDialog dialog = new ReviewDialog(this, restaurantName, username);
+            final ReviewDialog dialog = new ReviewDialog(this, restaurantName, username);
             dialog.setVisible(true);
         });
 
@@ -229,8 +244,8 @@ public class ResMenu extends JFrame {
             quantitySpinners[i].addChangeListener(e -> {
                 double total = 0.0;
                 for (int j = 0; j < quantitySpinners.length; j++) {
-                    int qty = (Integer) quantitySpinners[j].getValue();
-                    double price = Double.parseDouble(menuData.get(j)[2]);
+                    final int qty = (Integer) quantitySpinners[j].getValue();
+                    final double price = Double.parseDouble(menuData.get(j)[2]);
                     total += qty * price;
                 }
                 totalLabel.setText("Total: $" + String.format("%.2f", total));

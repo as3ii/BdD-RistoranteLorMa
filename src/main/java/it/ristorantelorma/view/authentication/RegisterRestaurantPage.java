@@ -14,6 +14,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 
 public class RegisterRestaurantPage {
 
@@ -44,8 +47,8 @@ public class RegisterRestaurantPage {
     }
 
     public RegisterRestaurantPage(final FirstPage parentPage, final RegisterPage registerPage,
-                                  String username, String nome, String cognome, String password,
-                                  String via, String civico, String citta, String telefono, String email) {
+                                  final String username, final String nome, final String cognome, final String password,
+                                  final String via, final String civico, final String citta, final String telefono, final String email) {
         this.parentPage = parentPage;
         this.registerPage = registerPage;
         this.mainFrame = new JFrame("Registrazione Ristorante");
@@ -79,9 +82,9 @@ public class RegisterRestaurantPage {
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setResizable(false);
 
-        JPanel formPanel = new JPanel(new GridBagLayout());
+        final JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.WHITE);
-        GridBagConstraints gbc = new GridBagConstraints();
+        final GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
 
         int row = 0;
@@ -102,9 +105,9 @@ public class RegisterRestaurantPage {
         addFormField(formPanel, gbc, "Ora Chiusura (HH:mm):", chiusuraField, row++);
 
         // Bottoni
-        JPanel buttonPanel = new JPanel();
-        JButton registerButton = new JButton("Registra Ristorante");
-        JButton backButton = new JButton("Back");
+        final JPanel buttonPanel = new JPanel();
+        final JButton registerButton = new JButton("Registra Ristorante");
+        final JButton backButton = new JButton("Back");
         buttonPanel.add(registerButton);
         buttonPanel.add(backButton);
 
@@ -122,7 +125,7 @@ public class RegisterRestaurantPage {
         });
     }
 
-    private void addFormField(JPanel panel, GridBagConstraints gbc, String labelText, JTextField field, int row) {
+    private void addFormField(final JPanel panel, final GridBagConstraints gbc, final String labelText, final JTextField field, final int row) {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.anchor = GridBagConstraints.EAST;
@@ -135,20 +138,20 @@ public class RegisterRestaurantPage {
     }
 
     private void handleRegisterRestaurant() {
-        String username = usernameField.getText().trim();
-        String nome = nomeField.getText().trim();
-        String cognome = cognomeField.getText().trim();
-        String password = passwordField.getText().trim();
-        String via = viaField.getText().trim();
-        String civico = civicoField.getText().trim();
-        String citta = cittaField.getText().trim();
-        String telefono = telefonoField.getText().trim();
-        String email = emailField.getText().trim();
+        final String username = usernameField.getText().trim();
+        final String nome = nomeField.getText().trim();
+        final String cognome = cognomeField.getText().trim();
+        final String password = passwordField.getText().trim();
+        final String via = viaField.getText().trim();
+        final String civico = civicoField.getText().trim();
+        final String citta = cittaField.getText().trim();
+        final String telefono = telefonoField.getText().trim();
+        final String email = emailField.getText().trim();
 
-        String nomeAttivita = nomeAttivitaField.getText().trim();
-        String partitaIVA = partitaIVAField.getText().trim();
-        String apertura = aperturaField.getText().trim();
-        String chiusura = chiusuraField.getText().trim();
+        final String nomeAttivita = nomeAttivitaField.getText().trim();
+        final String partitaIVA = partitaIVAField.getText().trim();
+        final String apertura = aperturaField.getText().trim();
+        final String chiusura = chiusuraField.getText().trim();
 
         if (username.isEmpty() || nome.isEmpty() || cognome.isEmpty() || password.isEmpty() ||
             via.isEmpty() || civico.isEmpty() || citta.isEmpty() || telefono.isEmpty() || email.isEmpty() ||
@@ -161,7 +164,7 @@ public class RegisterRestaurantPage {
             // 1. Inserisci utente come RESTAURANT (se non esiste già)
             try (PreparedStatement checkStmt = conn.prepareStatement("SELECT username FROM utenti WHERE username = ?")) {
                 checkStmt.setString(1, username);
-                ResultSet rs = checkStmt.executeQuery();
+                final ResultSet rs = checkStmt.executeQuery();
                 if (!rs.next()) {
                     try (PreparedStatement insertStmt = conn.prepareStatement(Queries.INSERT_USER)) {
                         insertStmt.setString(1, nome);
@@ -189,21 +192,21 @@ public class RegisterRestaurantPage {
             }
 
             // Ora puoi recuperare l’utente come RestaurantUser
-            Result<java.util.Optional<RestaurantUser>> userResult = RestaurantUser.DAO.find(conn, username);
+            final Result<java.util.Optional<RestaurantUser>> userResult = RestaurantUser.DAO.find(conn, username);
             if (!userResult.isSuccess() || userResult.getValue().isEmpty()) {
                 JOptionPane.showMessageDialog(mainFrame, "Errore nel recupero utente ristorante.", "Errore", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            RestaurantUser restaurantUser = userResult.getValue().get();
+            final RestaurantUser restaurantUser = userResult.getValue().get();
 
             // 2. Inserisci ristorante
-            Timestamp aperturaTs = parseTime(apertura);
-            Timestamp chiusuraTs = parseTime(chiusura);
+            final Timestamp aperturaTs = parseTime(apertura);
+            final Timestamp chiusuraTs = parseTime(chiusura);
             if (aperturaTs == null || chiusuraTs == null) {
                 JOptionPane.showMessageDialog(mainFrame, "Formato ora non valido. Usa HH:mm.", "Errore", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            Result<Restaurant> restResult = Restaurant.DAO.insert(conn, restaurantUser, nomeAttivita, partitaIVA, aperturaTs, chiusuraTs);
+            final Result<Restaurant> restResult = Restaurant.DAO.insert(conn, restaurantUser, nomeAttivita, partitaIVA, aperturaTs, chiusuraTs);
             if (!restResult.isSuccess()) {
                 JOptionPane.showMessageDialog(mainFrame, "Errore inserimento ristorante: " + restResult.getErrorMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -219,11 +222,11 @@ public class RegisterRestaurantPage {
         }
     }
 
-    private Timestamp parseTime(String timeStr) {
+    private Timestamp parseTime(final String timeStr) {
         try {
-            java.time.LocalTime lt = java.time.LocalTime.parse(timeStr);
-            return Timestamp.valueOf(java.time.LocalDate.now().atTime(lt));
-        } catch (Exception e) {
+            final LocalTime lt = LocalTime.parse(timeStr);
+            return Timestamp.valueOf(LocalDate.now().atTime(lt));
+        } catch (DateTimeParseException e) {
             return null;
         }
     }

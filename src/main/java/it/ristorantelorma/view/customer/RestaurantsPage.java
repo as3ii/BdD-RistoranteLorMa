@@ -2,29 +2,31 @@ package it.ristorantelorma.view.customer;
 
 import it.ristorantelorma.view.authentication.LoginPage;
 import it.ristorantelorma.model.Restaurant;
+import it.ristorantelorma.model.Result;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class RestaurantsPage extends JFrame {
 
     private final LoginPage loginPage;
 
-    public RestaurantsPage(LoginPage loginPage, Connection connection, String username) {
+    public RestaurantsPage(final LoginPage loginPage, final Connection connection, final String username) {
         this.loginPage = loginPage;
         setTitle("RestaurantsPage");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(500, 500);
         setLocationRelativeTo(null);
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
+        final JPanel mainPanel = new JPanel(new BorderLayout());
 
         // Ottieni i ristoranti dal database
-        Collection<Restaurant> restaurants = new ArrayList<>();
-        var result = Restaurant.DAO.list(connection);
+        final Collection<Restaurant> restaurants;
+        final Result<Collection<Restaurant>> result = Restaurant.DAO.list(connection);
         if (result.isSuccess()) {
             restaurants = result.getValue();
         } else {
@@ -32,20 +34,21 @@ public class RestaurantsPage extends JFrame {
                 this,
                 "Errore nel caricamento dei ristoranti: " + result.getErrorMessage()
             );
+            return;
         }
 
         // Prepara i dati per la tabella
-        String[][] data = new String[restaurants.size()][3];
+        final String[][] data = new String[restaurants.size()][3];
         int i = 0;
-        for (Restaurant r : restaurants) {
+        for (final Restaurant r : restaurants) {
             data[i][0] = r.getRestaurantName();
             data[i][1] = r.getOpeningTime().toLocalDateTime().toLocalTime().toString();
             data[i][2] = r.getClosingTime().toLocalDateTime().toLocalTime().toString();
             i++;
         }
-        String[] columns = { "Nome Attività", "Apertura", "Chiusura" };
+        final String[] columns = { "Nome Attività", "Apertura", "Chiusura" };
 
-        JTable table = new JTable(data, columns);
+        final JTable table = new JTable(data, columns);
         table.setEnabled(true);
         table.setRowSelectionAllowed(true);
         table.setShowGrid(false);
@@ -59,26 +62,27 @@ public class RestaurantsPage extends JFrame {
         table.getColumnModel().getColumn(2).setMinWidth(60);
         table.getColumnModel().getColumn(2).setMaxWidth(70);
 
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = table.rowAtPoint(evt.getPoint());
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(final MouseEvent evt) {
+                final int row = table.rowAtPoint(evt.getPoint());
                 if (row >= 0) {
-                    String restaurantName = data[row][0];
+                    final String restaurantName = data[row][0];
                     // Apri la finestra del menu del ristorante selezionato
                     SwingUtilities.invokeLater(() -> {
                         RestaurantsPage.this.setVisible(false);
-                        ResMenu resMenu = new ResMenu(restaurantName, RestaurantsPage.this, username); // passa lo username
+                        final ResMenu resMenu = new ResMenu(restaurantName, RestaurantsPage.this, username); // passa lo username
                         resMenu.setVisible(true);
                     });
                 }
             }
         });
 
-        JScrollPane scrollPane = new JScrollPane(table);
+        final JScrollPane scrollPane = new JScrollPane(table);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel();
-        JButton logoutButton = new JButton("Logout");
+        final JPanel buttonPanel = new JPanel();
+        final JButton logoutButton = new JButton("Logout");
         logoutButton.addActionListener(e -> handleLogout());
         buttonPanel.add(logoutButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
