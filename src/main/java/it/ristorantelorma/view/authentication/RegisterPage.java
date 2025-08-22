@@ -129,28 +129,29 @@ public class RegisterPage {
             formPanel.setBackground(Color.WHITE);
             final GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(10, 10, 10, 10);
+            int row = 0;
 
-            addFormField(formPanel, gbc, "Username:", usernameField, 0);
-            addFormField(formPanel, gbc, "Nome:", nameField, 1);
-            addFormField(formPanel, gbc, "Cognome:", surnameField, 2);
-            addFormField(formPanel, gbc, "Password:", passwordField, 3);
-            addFormField(formPanel, gbc, "Via:", streetField, 4);
-            addFormField(formPanel, gbc, "Civico:", houseNumberField, 5);
-            addFormField(formPanel, gbc, "Città:", cityField, 6);
-            addFormField(formPanel, gbc, "Telefono:", phoneField, 7);
-            addFormField(formPanel, gbc, "Email:", emailField, 8);
-            addFormField(formPanel, gbc, "Credito:", creditField, 9);
+            addFormField(formPanel, gbc, "Username:", usernameField, row++);
+            addFormField(formPanel, gbc, "Nome:", nameField, row++);
+            addFormField(formPanel, gbc, "Cognome:", surnameField, row++);
+            addFormField(formPanel, gbc, "Password:", passwordField, row++);
+            addFormField(formPanel, gbc, "Via:", streetField, row++);
+            addFormField(formPanel, gbc, "Civico:", houseNumberField, row++);
+            addFormField(formPanel, gbc, "Città:", cityField, row++);
+            addFormField(formPanel, gbc, "Telefono:", phoneField, row++);
+            addFormField(formPanel, gbc, "Email:", emailField, row++);
+            addFormField(formPanel, gbc, "Credito:", creditField, row++);
 
             // Checkbox for delivery man
             gbc.gridx = 0;
-            gbc.gridy = 10;
+            gbc.gridy = row++;
             gbc.gridwidth = 2;
             gbc.anchor = GridBagConstraints.CENTER;
             formPanel.add(deliveryManCheckBox, gbc);
 
             final JPanel buttonPanel = createButtonPanel();
             gbc.gridx = 0;
-            gbc.gridy = 11;
+            gbc.gridy = row;
             gbc.gridwidth = 2;
             gbc.fill = GridBagConstraints.HORIZONTAL;
             formPanel.add(buttonPanel, gbc);
