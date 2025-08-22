@@ -1,17 +1,30 @@
 package it.ristorantelorma.view.authentication;
 
-import javax.swing.*;
-
-import it.ristorantelorma.view.delivery.FirstPage;
-import it.ristorantelorma.view.deliveryman.DeliverymanPage;
-import it.ristorantelorma.view.customer.RestaurantsPage;
-import it.ristorantelorma.model.user.User;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.sql.Connection;
 import java.util.Optional;
-import it.ristorantelorma.model.Result;
 
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import it.ristorantelorma.model.DatabaseConnectionManager;
+import it.ristorantelorma.model.Result;
+import it.ristorantelorma.model.user.User;
+import it.ristorantelorma.view.customer.RestaurantsPage;
+import it.ristorantelorma.view.delivery.FirstPage;
+import it.ristorantelorma.view.deliveryman.DeliverymanPage;
 
 /**
  * Rappresenta la pagina di login dell'applicazione.
@@ -24,6 +37,8 @@ public class LoginPage {
     private static final Font BUTTON_FONT = new Font("Arial", Font.PLAIN, 12);
     private static final Dimension FIELD_DIMENSION = new Dimension(150, 25);
     private static final Dimension BUTTON_DIMENSION = new Dimension(80, 30);
+    private static final int WINDOW_WIDTH = 400;
+    private static final int WINDOW_HEIGHT = 300;
 
     private final JFrame mainFrame;
     private final JTextField usernameField;
@@ -57,7 +72,7 @@ public class LoginPage {
      */
     private void initializeFrame() {
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.mainFrame.setSize(400, 300);
+        this.mainFrame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         this.mainFrame.setLocationRelativeTo(null);
         this.mainFrame.setResizable(false);
         this.mainFrame.getContentPane().setBackground(BACKGROUND_COLOR);
