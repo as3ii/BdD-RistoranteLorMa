@@ -1,81 +1,133 @@
 package it.ristorantelorma.view.customer;
 
-import it.ristorantelorma.model.DatabaseConnectionManager;
-
-import javax.swing.*;
-import java.awt.*;
-import java.sql.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-public class ResMenu extends JFrame {
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextArea;
+import javax.swing.SpinnerNumberModel;
 
-    private double balance;
+import it.ristorantelorma.model.DatabaseConnectionManager;
+import it.ristorantelorma.model.Food;
+import it.ristorantelorma.model.Restaurant;
+import it.ristorantelorma.model.Result;
+import it.ristorantelorma.model.order.Order;
+import it.ristorantelorma.model.order.ReadyOrder;
+import it.ristorantelorma.model.order.WaitingOrder;
+import it.ristorantelorma.model.user.ClientUser;
 
+/**
+ * Food selection menu for an order.
+ */
+public final class ResMenu extends JFrame {
+
+    public static final long serialVersionUID = 57895133L; // Random
+    private static final String ERROR_WINDOW_TITLE = "Errore";
+    private static final int WINDOW_WIDTH = 900;
+    private static final int WINDOW_HEIGHT = 600;
+    private static final Dimension INFO_PANEL_DIMENSION = new Dimension(300, 400);
+    private static final Dimension MENU_PANEL_DIMENSION = new Dimension(500, 400);
+
+    private BigDecimal balance;
+
+    /**
+     * @param restaurantName
+     * @param restaurantsPage
+     * @param username
+     */
     public ResMenu(final String restaurantName, final RestaurantsPage restaurantsPage, final String username) {
         setTitle("DeliveryDB");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(900, 600);
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setLocationRelativeTo(null);
 
-        final List<String[]> menuData = new ArrayList<>();
-        balance = 0.0;
-        final Connection conn;
-        try {
-            conn = DatabaseConnectionManager.getInstance().getConnection();
-            // Query vivande
-            PreparedStatement psVivande = null;
-            ResultSet rsVivande = null;
-            try {
-                psVivande = conn.prepareStatement(
-                    "SELECT nome, nome_attività, prezzo FROM vivande WHERE nome_attività = ?");
-                psVivande.setString(1, restaurantName);
-                rsVivande = psVivande.executeQuery();
-                while (rsVivande.next()) {
-                    final String nome = rsVivande.getString("nome");
-                    final String prezzo = rsVivande.getString("prezzo");
-                    menuData.add(new String[]{nome, restaurantName, prezzo});
-                }
-            } finally {
-                if (rsVivande != null) {
-                    try {
-                        rsVivande.close();
-                    } catch (SQLException ignore) {}
-                }
-                if (psVivande != null) {
-                    try {
-                        psVivande.close();
-                    } catch (SQLException ignore) {}
-                }
-            }
+        final List<Food> menuData;
+        final Restaurant restaurant;
+        final ClientUser client;
 
-            // Query saldo utente
-            PreparedStatement psSaldo = null;
-            ResultSet rsSaldo = null;
-            try {
-                psSaldo = conn.prepareStatement(
-                    "SELECT credito FROM utenti WHERE username = ?");
-                psSaldo.setString(1, username);
-                rsSaldo = psSaldo.executeQuery();
-                if (rsSaldo.next()) {
-                    balance = rsSaldo.getDouble("credito");
-                }
-            } finally {
-                if (rsSaldo != null) {
-                    try {
-                        rsSaldo.close();
-                    } catch (SQLException ignore) {}
-                }
-                if (psSaldo != null) {
-                    try {
-                        psSaldo.close();
-                    } catch (SQLException ignore) {}
-                }
+        try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
+            final Result<Optional<Restaurant>> resRestaurant = Restaurant.DAO.find(conn, restaurantName);
+            if (!resRestaurant.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nella ricerca del ristorante.\n" + resRestaurant.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            } else if (resRestaurant.getValue().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Il ristorante " + restaurantName + " non esiste.",
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
             }
+            restaurant = resRestaurant.getValue().get();
+
+            final Result<Collection<Food>> resFoods = Food.DAO.list(conn, restaurant);
+            if (!resFoods.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nella raccolta della lista vivande.\n" + resFoods.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            menuData = new ArrayList<>(resFoods.getValue());
+
+            final Result<Optional<ClientUser>> resClient = ClientUser.DAO.find(conn, username);
+            if (!resClient.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nella ricerca del cliente.\n" + resClient.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            } else if (resClient.getValue().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "L'utente " + username + " non esiste.",
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            client = resClient.getValue().get();
+
+            balance = client.getCredit();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Errore nel caricamento dei dati vivande o saldo: " + e.getMessage());
-        } finally {
-            //if (conn != null) try { conn.close(); } catch (SQLException ignore) {}
+            JOptionPane.showMessageDialog(
+                this,
+                "Errore nel caricamento dei dati vivande o saldo: " + e.getMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
         }
 
         final JPanel mainPanel = new JPanel(new BorderLayout());
@@ -92,18 +144,20 @@ public class ResMenu extends JFrame {
         menuTablePanel.add(header);
 
         final JSpinner[] quantitySpinners = new JSpinner[menuData.size()];
-        for (int i = 0; i < menuData.size(); i++) {
+        int index = 0;
+        for (final Food food : menuData) {
             final JPanel row = new JPanel(new GridLayout(1, 4));
-            row.add(new JLabel(menuData.get(i)[0]));
-            row.add(new JLabel(menuData.get(i)[1]));
-            quantitySpinners[i] = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
-            row.add(quantitySpinners[i]);
-            row.add(new JLabel(menuData.get(i)[2]));
+            row.add(new JLabel(food.getName()));
+            row.add(new JLabel(food.getRestaurant().getRestaurantName()));
+            quantitySpinners[index] = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
+            row.add(quantitySpinners[index]);
+            row.add(new JLabel(food.getPrice().toPlainString()));
             menuTablePanel.add(row);
+            index++;
         }
 
         final JScrollPane menuScroll = new JScrollPane(menuTablePanel);
-        menuScroll.setPreferredSize(new Dimension(500, 400));
+        menuScroll.setPreferredSize(MENU_PANEL_DIMENSION);
         menuPanel.add(menuScroll, BorderLayout.CENTER);
 
         // Pulsanti Back e Send Order
@@ -119,78 +173,82 @@ public class ResMenu extends JFrame {
             restaurantsPage.setVisible(true);
         });
         sendOrderButton.addActionListener(e -> {
-            double total = 0.0;
-            final int[] quantities = new int[quantitySpinners.length];
+            final BigDecimal total;
+            final Map<Food, Integer> orderedFood = new HashMap<>();
             for (int i = 0; i < quantitySpinners.length; i++) {
-                quantities[i] = (Integer) quantitySpinners[i].getValue();
-                final double price = Double.parseDouble(menuData.get(i)[2]);
-                total += quantities[i] * price;
+                orderedFood.put(menuData.get(i), (Integer) quantitySpinners[i].getValue());
             }
-            if (total > balance) {
+            total = orderedFood
+                    .entrySet()
+                    .stream()
+                    .map(el -> el.getKey().getPrice().multiply(new BigDecimal(el.getValue())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (total.compareTo(balance) > 0) {
                 JOptionPane.showMessageDialog(this, "Saldo insufficiente!");
                 return;
             }
-            try (Connection conn1 = DatabaseConnectionManager.getInstance().getConnection()) {
-                conn1.setAutoCommit(false);
+            try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
+                final Result<ClientUser> resClient = ClientUser.DAO.updateCredit(conn, client, balance.subtract(total));
+                if (!resClient.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Errore nell'aggiornamento del bilancio del cliente.\n" + resClient.getErrorMessage(),
+                        ERROR_WINDOW_TITLE,
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                balance = balance.subtract(total);
 
-                // Aggiorna saldo utente
-                try (PreparedStatement psUpdate = conn1.prepareStatement(
-                        "UPDATE utenti SET credito = ? WHERE username = ?")) {
-                    psUpdate.setDouble(1, balance - total);
-                    psUpdate.setString(2, username);
-                    psUpdate.executeUpdate();
+                final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+                // TODO: properly handle shipping rate
+                final BigDecimal shippingRate = new BigDecimal("2.5");
+                final Result<WaitingOrder> resNewOrder = Order.DAO.insert(
+                    conn, restaurant, now, shippingRate, resClient.getValue(), orderedFood
+                );
+                if (!resNewOrder.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Errore nel inserimento dell'ordine.\n" + resNewOrder.getErrorMessage(),
+                        ERROR_WINDOW_TITLE,
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                // TODO: properly implement switch from
+                final Result<ReadyOrder> resOrder = ReadyOrder.DAO.from(conn, resNewOrder.getValue());
+                if (!resOrder.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Errore nel aggiornamento dell'ordine.\n" + resOrder.getErrorMessage(),
+                        ERROR_WINDOW_TITLE,
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                final ReadyOrder order = resOrder.getValue();
+
+                final Result<Map<Food, Integer>> resFoodRequested = Order.DAO.insertFoodRequested(
+                    conn, order.getId(), orderedFood
+                );
+                if (!resFoodRequested.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Errore nel inserimento degli elementi dell'ordine.\n" + resFoodRequested.getErrorMessage(),
+                        ERROR_WINDOW_TITLE,
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
                 }
 
-                // Inserisci ordine
-                int orderId = -1;
-                try (PreparedStatement psOrder = conn1.prepareStatement(
-                        "INSERT INTO ordini (nome_attività, data_ora, stato, tariffa_spedizione, username_cliente) VALUES (?, NOW(), 'pronto', ?, ?)",
-                        Statement.RETURN_GENERATED_KEYS)) {
-                    psOrder.setString(1, menuData.get(0)[1]);
-                    psOrder.setDouble(2, 2.5);
-                    psOrder.setString(3, username);
-                    psOrder.executeUpdate();
-                    try (ResultSet rsOrder = psOrder.getGeneratedKeys()) {
-                        if (rsOrder.next()) {
-                            orderId = rsOrder.getInt(1);
-                        }
-                    }
-                }
-
-                // Inserisci dettaglio ordini
-                try (PreparedStatement psDetail = conn1.prepareStatement(
-                        "INSERT INTO dettaglio_ordini (codice_vivanda, codice_ordine, quantità) VALUES (?, ?, ?)")) {
-                    for (int i = 0; i < menuData.size(); i++) {
-                        if (quantities[i] > 0) {
-                            int codiceVivanda = -1;
-                            try (PreparedStatement psViv = conn1.prepareStatement(
-                                    "SELECT codice FROM vivande WHERE nome = ? AND nome_attività = ?")) {
-                                psViv.setString(1, menuData.get(i)[0]);
-                                psViv.setString(2, menuData.get(i)[1]);
-                                try (ResultSet rsViv = psViv.executeQuery()) {
-                                    if (rsViv.next()) {
-                                        codiceVivanda = rsViv.getInt("codice");
-                                    }
-                                }
-                            }
-                            if (codiceVivanda != -1) {
-                                psDetail.setInt(1, codiceVivanda);
-                                psDetail.setInt(2, orderId);
-                                psDetail.setInt(3, quantities[i]);
-                                psDetail.addBatch();
-                            }
-                        }
-                    }
-                    psDetail.executeBatch();
-                }
-
-                conn1.commit();
                 JOptionPane.showMessageDialog(this, "Ordine inviato con successo!");
                 this.dispose();
                 restaurantsPage.setVisible(true);
             } catch (SQLException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Errore nell'invio dell'ordine: " + ex.getMessage());
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nell'invio dell'ordine: " + ex.getMessage()
+                );
             }
         });
 
@@ -203,9 +261,9 @@ public class ResMenu extends JFrame {
         // --- DESTRA: Info, riepilogo, saldo ---
         final JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        infoPanel.setPreferredSize(new Dimension(300, 400));
+        infoPanel.setPreferredSize(INFO_PANEL_DIMENSION);
 
-        final JLabel balanceLabel = new JLabel("Balance: $" + String.format("%.2f", balance));
+        final JLabel balanceLabel = new JLabel("Balance: $" + balance.toPlainString());
         final JLabel orderSummaryLabel = new JLabel("Order Summary:");
         final JTextArea orderSummaryArea = new JTextArea(6, 20);
         orderSummaryArea.setEditable(false);
@@ -240,15 +298,14 @@ public class ResMenu extends JFrame {
         setContentPane(mainPanel);
 
         // Dopo aver creato totalLabel:
-        for (int i = 0; i < quantitySpinners.length; i++) {
-            quantitySpinners[i].addChangeListener(e -> {
-                double total = 0.0;
+        for (final JSpinner spinner : quantitySpinners) {
+            spinner.addChangeListener(e -> {
+                BigDecimal total = BigDecimal.ZERO;
                 for (int j = 0; j < quantitySpinners.length; j++) {
                     final int qty = (Integer) quantitySpinners[j].getValue();
-                    final double price = Double.parseDouble(menuData.get(j)[2]);
-                    total += qty * price;
+                    total = total.add(menuData.get(j).getPrice().multiply(new BigDecimal(qty)));
                 }
-                totalLabel.setText("Total: $" + String.format("%.2f", total));
+                totalLabel.setText("Total: $" + total.toPlainString());
             });
         }
     }
