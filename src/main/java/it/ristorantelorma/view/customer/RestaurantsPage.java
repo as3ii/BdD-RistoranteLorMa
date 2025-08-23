@@ -1,30 +1,60 @@
 package it.ristorantelorma.view.customer;
 
-import it.ristorantelorma.view.authentication.LoginPage;
-import it.ristorantelorma.model.Restaurant;
-import it.ristorantelorma.model.Result;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.util.Collection;
 
-public class RestaurantsPage extends JFrame {
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import it.ristorantelorma.model.Restaurant;
+import it.ristorantelorma.model.Result;
+import it.ristorantelorma.view.authentication.LoginPage;
+
+/**
+ * Restaurant selection window.
+ */
+public final class RestaurantsPage extends JFrame {
+
+    public static final long serialVersionUID = 201742972L; // Random
+    private static final String ERROR_WINDOW_TITLE = "Errore";
+    private static final int WINDOW_WIDTH = 500;
+    private static final int WINDOW_HEIGHT = 500;
+    private static final int FONT_SIZE = 18;
+    private static final int TABLE_ROW_HEIGHT = 28;
+    private static final int TABLE_COLUMN_MIN_WIDTH = 60;
+    private static final int TABLE_COLUMN_MAX_WIDTH = 70;
 
     private final LoginPage loginPage;
 
+    /**
+     * @param loginPage
+     * @param connection
+     * @param username
+     */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "loginPage can freely be modified by others without issues"
+    )
     public RestaurantsPage(final LoginPage loginPage, final Connection connection, final String username) {
         this.loginPage = loginPage;
         setTitle("RestaurantsPage");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(500, 500);
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setLocationRelativeTo(null);
 
         final JPanel mainPanel = new JPanel(new BorderLayout());
 
-        // Ottieni i ristoranti dal database
+        // Read restaurant list from database
         final Collection<Restaurant> restaurants;
         final Result<Collection<Restaurant>> result = Restaurant.DAO.list(connection);
         if (result.isSuccess()) {
@@ -32,12 +62,14 @@ public class RestaurantsPage extends JFrame {
         } else {
             JOptionPane.showMessageDialog(
                 this,
-                "Errore nel caricamento dei ristoranti: " + result.getErrorMessage()
+                "Errore nel caricamento dei ristoranti: " + result.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
             );
             return;
         }
 
-        // Prepara i dati per la tabella
+        // Prepare data for the table
         final String[][] data = new String[restaurants.size()][3];
         int i = 0;
         for (final Restaurant r : restaurants) {
@@ -53,14 +85,13 @@ public class RestaurantsPage extends JFrame {
         table.setRowSelectionAllowed(true);
         table.setShowGrid(false);
         table.setTableHeader(null);
-        table.setFont(new Font("Dialog", Font.PLAIN, 18));
-        table.setRowHeight(28);
+        table.setFont(new Font("Dialog", Font.PLAIN, FONT_SIZE));
+        table.setRowHeight(TABLE_ROW_HEIGHT);
 
-        // Imposta larghezza colonne orario
-        table.getColumnModel().getColumn(1).setMinWidth(60);
-        table.getColumnModel().getColumn(1).setMaxWidth(70);
-        table.getColumnModel().getColumn(2).setMinWidth(60);
-        table.getColumnModel().getColumn(2).setMaxWidth(70);
+        table.getColumnModel().getColumn(1).setMinWidth(TABLE_COLUMN_MIN_WIDTH);
+        table.getColumnModel().getColumn(1).setMaxWidth(TABLE_COLUMN_MAX_WIDTH);
+        table.getColumnModel().getColumn(2).setMinWidth(TABLE_COLUMN_MIN_WIDTH);
+        table.getColumnModel().getColumn(2).setMaxWidth(TABLE_COLUMN_MAX_WIDTH);
 
         table.addMouseListener(new MouseAdapter() {
             @Override
@@ -68,10 +99,10 @@ public class RestaurantsPage extends JFrame {
                 final int row = table.rowAtPoint(evt.getPoint());
                 if (row >= 0) {
                     final String restaurantName = data[row][0];
-                    // Apri la finestra del menu del ristorante selezionato
+                    // Open the menu window for the selected restaurant
                     SwingUtilities.invokeLater(() -> {
                         RestaurantsPage.this.setVisible(false);
-                        final ResMenu resMenu = new ResMenu(restaurantName, RestaurantsPage.this, username); // passa lo username
+                        final ResMenu resMenu = new ResMenu(restaurantName, RestaurantsPage.this, username);
                         resMenu.setVisible(true);
                     });
                 }
@@ -91,8 +122,8 @@ public class RestaurantsPage extends JFrame {
     }
 
     private void handleLogout() {
-        this.setVisible(false); // Chiude la finestra RestaurantsPage
-        loginPage.handleReset(); // Resetta i campi di LoginPage
-        loginPage.show(); // Mostra la finestra di LoginPage
+        this.setVisible(false); // Close this window
+        loginPage.handleReset(); // Reset fields of loginPage
+        loginPage.show(); // Show loginPage window
     }
 }
