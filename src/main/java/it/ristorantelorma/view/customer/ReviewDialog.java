@@ -1,22 +1,48 @@
 package it.ristorantelorma.view.customer;
 
+import java.awt.FlowLayout;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Restaurant;
+import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.Review;
 import it.ristorantelorma.model.Vote;
 import it.ristorantelorma.model.user.ClientUser;
 
-import javax.swing.*;
-import java.awt.*;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Optional;
+/**
+ * Review dialog window.
+ */
+public final class ReviewDialog extends JDialog {
 
-public class ReviewDialog extends JDialog {
+    public static final long serialVersionUID = 811249015L; // Random
+    private static final String ERROR_WINDOW_TITLE = "Errore";
+    private static final int WINDOW_WIDTH = 400;
+    private static final int WINDOW_HEIGHT = 300;
+
+    /**
+     * @param parent
+     * @param restaurantName
+     * @param username
+     */
     public ReviewDialog(final JFrame parent, final String restaurantName, final String username) {
         super(parent, "Recensione ristorante", true);
-        setSize(400, 300);
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setLocationRelativeTo(parent);
 
         final JPanel panel = new JPanel();
@@ -40,38 +66,77 @@ public class ReviewDialog extends JDialog {
         panel.add(saveButton);
 
         saveButton.addActionListener(e -> {
-            final Vote voto = (Vote) voteComboBox.getSelectedItem();
-            final String commento = reviewArea.getText();
+            final Vote vote = (Vote) voteComboBox.getSelectedItem();
+            final String comment = reviewArea.getText();
 
             try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
-                // Recupera ClientUser e Restaurant
-                final var userResult = ClientUser.DAO.find(conn, username);
-                final var restaurantResult = Restaurant.DAO.find(conn, restaurantName);
-
-                if (!userResult.isSuccess() || userResult.getValue() == null || userResult.getValue().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Utente non trovato o errore DB: " + userResult.getErrorMessage());
+                final Result<Optional<ClientUser>> userResult = ClientUser.DAO.find(conn, username);
+                if (!userResult.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Errore nella ricerca del cliente: " + userResult.getErrorMessage(),
+                        ERROR_WINDOW_TITLE,
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                } else if (userResult.getValue().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Il cliente " + username + " non esiste.",
+                        ERROR_WINDOW_TITLE,
+                        JOptionPane.ERROR_MESSAGE
+                    );
                     return;
                 }
-                if (!restaurantResult.isSuccess() || restaurantResult.getValue() == null || restaurantResult.getValue().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Ristorante non trovato o errore DB: " + restaurantResult.getErrorMessage());
-                    return;
-                }
-
                 final ClientUser user = userResult.getValue().get();
+
+                final Result<Optional<Restaurant>> restaurantResult = Restaurant.DAO.find(conn, restaurantName);
+                if (!restaurantResult.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                       this,
+                       "Errore nella ricerca del ristorante: " + restaurantResult.getErrorMessage(),
+                       ERROR_WINDOW_TITLE,
+                       JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                } else if (restaurantResult.getValue().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                       this,
+                       "Il ristorante " + restaurantName + " non esiste.",
+                       ERROR_WINDOW_TITLE,
+                       JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
                 final Restaurant restaurant = restaurantResult.getValue().get();
 
-                Review.DAO.insert(
+                final Result<Review> reviewResult = Review.DAO.insert(
                     conn,
                     restaurant,
-                    new Timestamp(System.currentTimeMillis()),
-                    voto, // enum direttamente
-                    commento.isEmpty() ? Optional.empty() : Optional.of(commento),
+
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    vote,
+                    comment.isEmpty() ? Optional.empty() : Optional.of(comment),
                     user
                 );
+                if (!reviewResult.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                       this,
+                       "Errore nel inserimento della recensione: " + reviewResult.getErrorMessage(),
+                       ERROR_WINDOW_TITLE,
+                       JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
                 JOptionPane.showMessageDialog(this, "Recensione salvata!");
                 dispose();
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(this, "Errore nel salvataggio: " + ex.getMessage());
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nel salvataggio: " + ex.getMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
             }
         });
 
