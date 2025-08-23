@@ -1,17 +1,5 @@
 package it.ristorantelorma.view.delivery;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
-import it.ristorantelorma.view.authentication.LoginPage;
-import it.ristorantelorma.view.authentication.RegisterPage;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -22,9 +10,19 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import it.ristorantelorma.view.authentication.LoginPage;
+import it.ristorantelorma.view.authentication.RegisterPage;
+
 /**
- * Rappresenta la pagina iniziale dell'applicazione che fornisce le opzioni per
- * effettuare il login o registrarsi.
+ * Represent the main window with the options for login and register actions.
  */
 public class FirstPage {
 
@@ -35,14 +33,15 @@ public class FirstPage {
     private static final Dimension BUTTON_DIMENSION = new Dimension(200, 50);
     private static final int BUTTON_SPACING = 10;
     private static final int PADDING = 10;
+    private static final int WINDOW_WIDTH = 400;
+    private static final int WINDOW_HEIGHT = 300;
 
     private final JButton loginButton;
     private final JButton registerButton;
     private final JFrame mainFrame;
 
     /**
-     * Costruttore di FirstPage.
-     * Inizializza la finestra principale e i componenti dell'interfaccia.
+     * FirstPage constructor, initialize the main window and its components.
      */
     public FirstPage() {
         this.mainFrame = new JFrame("Ristorante LorMa");
@@ -53,19 +52,18 @@ public class FirstPage {
     }
 
     /**
-     * Inizializza le proprietà base del frame principale.
+     * Initialize the basic properties of the main frame.
      */
     private void initializeFrame() {
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.mainFrame.setSize(400, 300);
-        this.mainFrame.setLocationRelativeTo(null); // Centra la finestra
+        this.mainFrame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        this.mainFrame.setLocationRelativeTo(null);
         this.mainFrame.setResizable(false);
     }
 
     /**
-     * Aggiorna il contenuto del frame principale e applica la funzione consumer specificata.
-     *
-     * @param consumer una funzione Consumer che modifica il content pane
+     * Update the content of the main frame using the given consumer.
+     * @param consumer
      */
     private void freshPane(final Consumer<Container> consumer) {
         final Container cp = this.mainFrame.getContentPane();
@@ -77,7 +75,7 @@ public class FirstPage {
     }
 
     /**
-     * Inizializza l'interfaccia utente per la prima pagina, incluso il layout e i bottoni.
+     * Initialize the user interface.
      */
     private void initializeUI() {
         freshPane(container -> {
@@ -86,31 +84,28 @@ public class FirstPage {
             container.setLayout(new BorderLayout());
             container.setBackground(Color.WHITE);
 
-            // Crea un pannello per i bottoni
             final JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
             buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             buttonPanel.setBackground(Color.WHITE);
 
-            buttonPanel.add(Box.createVerticalGlue()); // Spazio per centrare i bottoni
+            buttonPanel.add(Box.createVerticalGlue()); // Space for the centered buttons
             buttonPanel.add(createAlignedButtonPanel(loginButton));
-            buttonPanel.add(Box.createRigidArea(new Dimension(0, BUTTON_SPACING))); // Spazio tra i bottoni
+            buttonPanel.add(Box.createRigidArea(new Dimension(0, BUTTON_SPACING))); // Space between the buttons
             buttonPanel.add(createAlignedButtonPanel(registerButton));
-            buttonPanel.add(Box.createVerticalGlue()); // Spazio per centrare i bottoni
+            buttonPanel.add(Box.createVerticalGlue()); // Space for the centered buttons
 
-            // Aggiunge il pannello dei bottoni al centro del frame principale
             container.add(buttonPanel, BorderLayout.CENTER);
         });
 
-        // Ridimensiona la finestra per adattarsi al contenuto
-        this.mainFrame.setSize(400, 300);
+        // Resize the window
+        this.mainFrame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     }
 
     /**
-     * Crea un bottone con il testo specificato, styling personalizzato e action listeners.
-     *
-     * @param text il testo da visualizzare sul bottone
-     * @return il JButton creato
+     * Create a custom button with predefined style and handlers.
+     * @param text the text to show on the button
+     * @return the custom JButton
      */
     private JButton createButton(final String text) {
         final JButton button = new JButton(text);
@@ -122,7 +117,7 @@ public class FirstPage {
         button.setOpaque(true);
         button.setPreferredSize(BUTTON_DIMENSION);
 
-        // Aggiunge effetto hover - cambia colore di sfondo quando il mouse entra
+        // Hover effect
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(final MouseEvent evt) {
@@ -135,7 +130,7 @@ public class FirstPage {
             }
         });
 
-        // Aggiunge action listener per gestire i click
+        // Click handlers
         button.addActionListener(e -> {
             if ("Login".equals(text)) {
                 handleLoginButtonClick();
@@ -148,10 +143,9 @@ public class FirstPage {
     }
 
     /**
-     * Crea un pannello con il bottone specificato centrato orizzontalmente.
-     *
-     * @param button il bottone da centrare
-     * @return il JPanel contenente il bottone centrato
+     * Create a custom centered button.
+     * @param button
+     * @return the JPanel with the centered button
      */
     private JPanel createAlignedButtonPanel(final JButton button) {
         final JPanel panel = new JPanel();
@@ -164,8 +158,7 @@ public class FirstPage {
     }
 
     /**
-     * Gestisce il click del bottone Login.
-     * Apre la pagina di login.
+     * Handle the login button.
      */
     private void handleLoginButtonClick() {
         this.hide();
@@ -173,8 +166,7 @@ public class FirstPage {
     }
 
     /**
-     * Gestisce il click del bottone Registrati.
-     * Per ora stampa solo un messaggio nella console.
+     * Handle the register button.
      */
     private void handleRegisterButtonClick() {
         this.hide();
@@ -182,26 +174,16 @@ public class FirstPage {
     }
 
     /**
-     * Mostra la finestra principale.
+     * show this window.
      */
     public void show() {
         this.mainFrame.setVisible(true);
     }
 
     /**
-     * Nasconde la finestra principale.
+     * Hide this window.
      */
     public void hide() {
         this.mainFrame.setVisible(false);
-    }
-
-    /**
-     * Metodo main per testare la FirstPage.
-     * Crea e visualizza la finestra.
-     */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new FirstPage().show();
-        });
     }
 }
