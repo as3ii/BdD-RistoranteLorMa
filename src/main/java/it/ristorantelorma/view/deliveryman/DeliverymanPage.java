@@ -1,28 +1,62 @@
 package it.ristorantelorma.view.deliveryman;
 
-import it.ristorantelorma.model.order.ReadyOrder;
-import it.ristorantelorma.model.order.AcceptedOrder;
-import it.ristorantelorma.model.order.DeliveredOrder;
-import it.ristorantelorma.model.user.DeliverymanUser;
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Optional;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
-public class DeliverymanPage extends JFrame {
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+
+import it.ristorantelorma.model.Result;
+import it.ristorantelorma.model.order.AcceptedOrder;
+import it.ristorantelorma.model.order.DeliveredOrder;
+import it.ristorantelorma.model.order.ReadyOrder;
+import it.ristorantelorma.model.user.DeliverymanUser;
+
+/**
+ * Deliveryman-specific page to handle order acceptance and delivery.
+ */
+public final class DeliverymanPage extends JFrame {
+
+    public static final long serialVersionUID = 632022973L; // Random
+    private static final String ERROR_WINDOW_TITLE = "Errore";
+    private static final int MAIN_WINDOW_WIDTH = 400;
+    private static final int MAIN_WINDOW_HEIGHT = 400;
+    private static final int DELIVERY_WINDOW_WIDTH = 500;
+    private static final int DELIVERY_WINDOW_HEIGHT = 300;
+    private static final int FONT_SIZE = 16;
+    private static final int TABLE_ROW_HEIGHT = 28;
+    private static final String HTML_NEWLINE = "<br>";
+    private static final Dimension BUTTON_DIMENSION = new Dimension(160, 30);
+
     private final JButton showOrdersButton;
     private final JButton viewAcceptedButton;
 
+    /**
+     * @param conn
+     * @param username
+     */
     public DeliverymanPage(final Connection conn, final String username) {
         super("DeliveryDB");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(400, 400);
+        setSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -43,22 +77,20 @@ public class DeliverymanPage extends JFrame {
         add(centerPanel, BorderLayout.CENTER);
 
         showOrdersButton.addActionListener(e -> {
-            // Usa il DAO per ottenere gli ordini "pronto"
             final Collection<ReadyOrder> readyOrders;
-            final var result = ReadyOrder.DAO.list(conn);
+            final Result<Collection<ReadyOrder>> result = ReadyOrder.DAO.list(conn);
             if (result.isSuccess()) {
                 readyOrders = result.getValue();
             } else {
                 JOptionPane.showMessageDialog(
                     this,
                     "Errore nel recupero degli ordini: " + result.getErrorMessage(),
-                    "Errore",
+                    ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
                 );
                 return;
             }
 
-            // Prepara i dati per la tabella
             final String[][] data = new String[readyOrders.size()][4];
             int i = 0;
             final List<ReadyOrder> readyOrdersList = new ArrayList<>(readyOrders);
@@ -75,8 +107,8 @@ public class DeliverymanPage extends JFrame {
             table.setEnabled(true);
             table.setRowSelectionAllowed(true);
             table.setShowGrid(false);
-            table.setFont(new Font("Dialog", Font.PLAIN, 16));
-            table.setRowHeight(28);
+            table.setFont(new Font("Dialog", Font.PLAIN, FONT_SIZE));
+            table.setRowHeight(TABLE_ROW_HEIGHT);
 
             table.addMouseListener(new MouseAdapter() {
                 @Override
@@ -88,38 +120,55 @@ public class DeliverymanPage extends JFrame {
                         final StringBuilder items = new StringBuilder();
                         for (final var entry : order.getFoodRequested().entrySet()) {
                             items.append("- ").append(entry.getKey().getName())
-                                 .append(" x ").append(entry.getValue()).append("<br>");
+                                 .append(" x ").append(entry.getValue()).append(HTML_NEWLINE);
                         }
-                        final String details = "<html><b>Ristorante:</b> " + order.getRestaurant().getRestaurantName() + "<br>"
-                            + "<b>Cliente:</b> " + client.getUsername() + "<br>"
-                            + "<b>Città:</b> " + client.getCity() + "<br>"
-                            + "<b>Via:</b> " + client.getStreet() + "<br>"
-                            + "<b>N. Civico:</b> " + client.getHouseNumber() + "<br>"
-                            + "<b>Piatti ordinati:</b><br>" + items
-                            + "<br><b>Compenso:</b> $" + order.getShippingRate() + "</html>";
+                        final String details = "<html><b>Ristorante:</b> "
+                            + order.getRestaurant().getRestaurantName() + HTML_NEWLINE
+                            + "<b>Cliente:</b> " + client.getUsername() + HTML_NEWLINE
+                            + "<b>Città:</b> " + client.getCity() + HTML_NEWLINE
+                            + "<b>Via:</b> " + client.getStreet() + HTML_NEWLINE
+                            + "<b>N. Civico:</b> " + client.getHouseNumber() + HTML_NEWLINE
+                            + "<b>Piatti ordinati:</b>" + HTML_NEWLINE
+                            + items + HTML_NEWLINE
+                            + "<b>Compenso:</b> $" + order.getShippingRate() + "</html>";
 
-                        final int scelta = JOptionPane.showConfirmDialog(
+                        final int choice = JOptionPane.showConfirmDialog(
                             null,
                             details + "Sei sicuro di voler accettare l'ordine?",
                             "Accetta Ordine",
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE
                         );
-                        if (scelta == JOptionPane.YES_OPTION) {
+                        if (choice == JOptionPane.YES_OPTION) {
                             final Timestamp now = new Timestamp(System.currentTimeMillis());
                             final Optional<DeliverymanUser> optDeliveryman = DeliverymanUser.DAO.find(conn, username).getValue();
                             if (optDeliveryman.isEmpty()) {
-                                JOptionPane.showMessageDialog(null, "Deliveryman non trovato!", "Errore", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(
+                                    null,
+                                    "Deliveryman non trovato!",
+                                    ERROR_WINDOW_TITLE,
+                                    JOptionPane.ERROR_MESSAGE
+                                );
                                 return;
                             }
                             final DeliverymanUser deliveryman = optDeliveryman.get();
                             final var acceptResult = AcceptedOrder.DAO.from(conn, order, now, deliveryman);
                             if (acceptResult.isSuccess()) {
-                                JOptionPane.showMessageDialog(null, "Ordine accettato!", "Conferma", JOptionPane.INFORMATION_MESSAGE);
-                                SwingUtilities.getWindowAncestor(table).dispose(); // Chiude la finestra degli ordini disponibili
-                                showOrdersButton.doClick(); // Riapre la finestra aggiornata
+                                JOptionPane.showMessageDialog(
+                                    null,
+                                    "Ordine accettato!",
+                                    "Conferma",
+                                    JOptionPane.INFORMATION_MESSAGE
+                                );
+                                SwingUtilities.getWindowAncestor(table).dispose(); // Close the orders window
+                                showOrdersButton.doClick(); // Reopen the updated window
                             } else {
-                                JOptionPane.showMessageDialog(null, "Errore nell'accettazione: " + acceptResult.getErrorMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(
+                                    null,
+                                    "Errore nell'accettazione: " + acceptResult.getErrorMessage(),
+                                    ERROR_WINDOW_TITLE,
+                                    JOptionPane.ERROR_MESSAGE
+                                );
                             }
                         }
                     }
@@ -127,7 +176,7 @@ public class DeliverymanPage extends JFrame {
             });
 
             final JDialog dialog = new JDialog(this, "Ordini disponibili", true);
-            dialog.setSize(400, 300);
+            dialog.setSize(DELIVERY_WINDOW_WIDTH, DELIVERY_WINDOW_HEIGHT);
             dialog.setLocationRelativeTo(this);
 
             final JScrollPane scrollPane = new JScrollPane(table);
@@ -136,25 +185,25 @@ public class DeliverymanPage extends JFrame {
         });
 
         viewAcceptedButton.addActionListener(e -> {
-            // Ottieni gli ordini accettati dal DAO
             final Collection<AcceptedOrder> acceptedOrders;
-            final var result = AcceptedOrder.DAO.list(conn);
+            final Result<Collection<AcceptedOrder>> result = AcceptedOrder.DAO.list(conn);
             if (result.isSuccess()) {
-                // Filtra solo quelli del fattorino corrente
-                acceptedOrders = result.getValue().stream()
+                // Filter the orders based on the deliveryman username
+                acceptedOrders = result
+                    .getValue()
+                    .stream()
                     .filter(order -> order.getDeliveryman().getUsername().equals(username))
                     .toList();
             } else {
                 JOptionPane.showMessageDialog(
                     this,
                     "Errore nel recupero degli ordini accettati: " + result.getErrorMessage(),
-                    "Errore",
+                    ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
                 );
                 return;
             }
 
-            // Prepara i dati per la tabella
             final String[][] data = new String[acceptedOrders.size()][5];
             int i = 0;
             final List<AcceptedOrder> acceptedOrdersList = new ArrayList<>(acceptedOrders);
@@ -172,8 +221,8 @@ public class DeliverymanPage extends JFrame {
             table.setEnabled(true);
             table.setRowSelectionAllowed(true);
             table.setShowGrid(false);
-            table.setFont(new Font("Dialog", Font.PLAIN, 16));
-            table.setRowHeight(28);
+            table.setFont(new Font("Dialog", Font.PLAIN, FONT_SIZE));
+            table.setRowHeight(TABLE_ROW_HEIGHT);
 
             table.addMouseListener(new MouseAdapter() {
                 @Override
@@ -185,20 +234,22 @@ public class DeliverymanPage extends JFrame {
                         final StringBuilder items = new StringBuilder();
                         for (final var entry : order.getFoodRequested().entrySet()) {
                             items.append("- ").append(entry.getKey().getName())
-                                 .append(" x ").append(entry.getValue()).append("<br>");
+                                 .append(" x ").append(entry.getValue()).append(HTML_NEWLINE);
                         }
-                        final String details = "<html><b>Ristorante:</b> " + order.getRestaurant().getRestaurantName() + "<br>"
-                            + "<b>Cliente:</b> " + client.getUsername() + "<br>"
-                            + "<b>Città:</b> " + client.getCity() + "<br>"
-                            + "<b>Via:</b> " + client.getStreet() + "<br>"
-                            + "<b>N. Civico:</b> " + client.getHouseNumber() + "<br>"
-                            + "<b>Piatti ordinati:</b><br>" + items
-                            + "<br><b>Accettato il:</b> " + order.getAcceptanceTime()
-                            + "<br><b>Compenso:</b> $" + order.getShippingRate() + "</html>";
+                        final String details = "<html><b>Ristorante:</b> "
+                            + order.getRestaurant().getRestaurantName() + HTML_NEWLINE
+                            + "<b>Cliente:</b> " + client.getUsername() + HTML_NEWLINE
+                            + "<b>Città:</b> " + client.getCity() + HTML_NEWLINE
+                            + "<b>Via:</b> " + client.getStreet() + HTML_NEWLINE
+                            + "<b>N. Civico:</b> " + client.getHouseNumber() + HTML_NEWLINE
+                            + "<b>Piatti ordinati:</b>" + HTML_NEWLINE
+                            + items + HTML_NEWLINE
+                            + "<b>Accettato il:</b> " + order.getAcceptanceTime() + HTML_NEWLINE
+                            + "<b>Compenso:</b> $" + order.getShippingRate() + "</html>";
 
                         final int scelta = JOptionPane.showConfirmDialog(
                             null,
-                            details + "<br>Segna come consegnato?",
+                            details + HTML_NEWLINE + "Segna come consegnato?",
                             "Consegna Ordine",
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE
@@ -207,11 +258,21 @@ public class DeliverymanPage extends JFrame {
                             final Timestamp now = new Timestamp(System.currentTimeMillis());
                             final var deliverResult = DeliveredOrder.DAO.from(conn, order, now);
                             if (deliverResult.isSuccess()) {
-                                JOptionPane.showMessageDialog(null, "Ordine consegnato!", "Conferma", JOptionPane.INFORMATION_MESSAGE);
+                                JOptionPane.showMessageDialog(
+                                    null,
+                                    "Ordine consegnato!",
+                                    "Conferma",
+                                    JOptionPane.INFORMATION_MESSAGE
+                                );
                                 SwingUtilities.getWindowAncestor(table).dispose();
                                 viewAcceptedButton.doClick();
                             } else {
-                                JOptionPane.showMessageDialog(null, "Errore nella consegna: " + deliverResult.getErrorMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(
+                                    null,
+                                    "Errore nella consegna: " + deliverResult.getErrorMessage(),
+                                    ERROR_WINDOW_TITLE,
+                                    JOptionPane.ERROR_MESSAGE
+                                );
                             }
                         }
                     }
@@ -219,7 +280,7 @@ public class DeliverymanPage extends JFrame {
             });
 
             final JDialog dialog = new JDialog(this, "Ordini da consegnare", true);
-            dialog.setSize(500, 300);
+            dialog.setSize(DELIVERY_WINDOW_WIDTH, DELIVERY_WINDOW_HEIGHT);
             dialog.setLocationRelativeTo(this);
 
             final JScrollPane scrollPane = new JScrollPane(table);
@@ -230,8 +291,8 @@ public class DeliverymanPage extends JFrame {
 
     private JButton createButton(final String text) {
         final JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.PLAIN, 12));
-        button.setPreferredSize(new Dimension(160, 30));
+        button.setFont(new Font("Arial", Font.PLAIN, FONT_SIZE - 4));
+        button.setPreferredSize(BUTTON_DIMENSION);
         button.setFocusPainted(false);
         return button;
     }
