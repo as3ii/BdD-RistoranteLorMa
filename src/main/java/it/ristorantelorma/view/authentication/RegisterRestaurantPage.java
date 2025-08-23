@@ -28,10 +28,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Represent the registration of a restaurant.
  */
-public class RegisterRestaurantPage {
+public final class RegisterRestaurantPage {
 
     private static final String ERROR_WINDOW_TITLE = "Errore";
     private static final int WINDOW_WIDTH = 500;
@@ -80,6 +82,10 @@ public class RegisterRestaurantPage {
      * @param telefono
      * @param email
      */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "parentPage and registerPage can freely be modified by others without issues"
+    )
     public RegisterRestaurantPage(
         final FirstPage parentPage, final RegisterPage registerPage,
         final String username, final String nome, final String cognome,

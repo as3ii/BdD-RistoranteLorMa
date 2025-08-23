@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serializable;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
@@ -24,8 +25,9 @@ import it.ristorantelorma.view.authentication.RegisterPage;
 /**
  * Represent the main window with the options for login and register actions.
  */
-public class FirstPage {
+public class FirstPage implements Serializable {
 
+    public static final long serialVersionUID = 960465863L;
     private static final Color BUTTON_BACKGROUND_COLOR = new Color(60, 179, 113); // Verde chiaro
     private static final Color BUTTON_BACKGROUND_HOVER_COLOR = new Color(34, 139, 34); // Verde scuro
     private static final Color BUTTON_TEXT_COLOR = Color.WHITE;
