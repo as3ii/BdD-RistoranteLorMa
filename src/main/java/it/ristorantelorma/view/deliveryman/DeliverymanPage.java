@@ -45,6 +45,7 @@ public final class DeliverymanPage extends JFrame {
     private static final int TABLE_ROW_HEIGHT = 28;
     private static final String HTML_NEWLINE = "<br>";
     private static final Dimension BUTTON_DIMENSION = new Dimension(160, 30);
+    private static final int EMPTY_GAP_HEIGHT = 10;
 
     private final JButton showOrdersButton;
     private final JButton viewAcceptedButton;
@@ -69,9 +70,9 @@ public final class DeliverymanPage extends JFrame {
         showOrdersButton = createButton("Show available orders");
         viewAcceptedButton = createButton("View Accepted");
 
-        centerPanel.add(Box.createVerticalStrut(20));
+        centerPanel.add(Box.createVerticalStrut(EMPTY_GAP_HEIGHT * 2));
         centerPanel.add(showOrdersButton);
-        centerPanel.add(Box.createVerticalStrut(10));
+        centerPanel.add(Box.createVerticalStrut(EMPTY_GAP_HEIGHT));
         centerPanel.add(viewAcceptedButton);
 
         add(centerPanel, BorderLayout.CENTER);
@@ -204,7 +205,8 @@ public final class DeliverymanPage extends JFrame {
                 return;
             }
 
-            final String[][] data = new String[acceptedOrders.size()][5];
+            final String[] columns = { "ID Ordine", "Cliente", "Ristorante", "N. Piatti", "Accettato il" };
+            final String[][] data = new String[acceptedOrders.size()][columns.length];
             int i = 0;
             final List<AcceptedOrder> acceptedOrdersList = new ArrayList<>(acceptedOrders);
             for (final AcceptedOrder order : acceptedOrders) {
@@ -215,7 +217,6 @@ public final class DeliverymanPage extends JFrame {
                 data[i][4] = order.getAcceptanceTime().toString();
                 i++;
             }
-            final String[] columns = { "ID Ordine", "Cliente", "Ristorante", "N. Piatti", "Accettato il" };
 
             final JTable table = new JTable(data, columns);
             table.setEnabled(true);

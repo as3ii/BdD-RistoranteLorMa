@@ -48,6 +48,7 @@ public final class ResMenu extends JFrame {
     private static final int WINDOW_HEIGHT = 600;
     private static final Dimension INFO_PANEL_DIMENSION = new Dimension(300, 400);
     private static final Dimension MENU_PANEL_DIMENSION = new Dimension(500, 400);
+    private static final int MAX_QUANTITY = 99;
 
     private BigDecimal balance;
 
@@ -149,7 +150,7 @@ public final class ResMenu extends JFrame {
             final JPanel row = new JPanel(new GridLayout(1, 4));
             row.add(new JLabel(food.getName()));
             row.add(new JLabel(food.getRestaurant().getRestaurantName()));
-            quantitySpinners[index] = new JSpinner(new SpinnerNumberModel(0, 0, 99, 1));
+            quantitySpinners[index] = new JSpinner(new SpinnerNumberModel(0, 0, MAX_QUANTITY, 1));
             row.add(quantitySpinners[index]);
             row.add(new JLabel(food.getPrice().toPlainString()));
             menuTablePanel.add(row);
