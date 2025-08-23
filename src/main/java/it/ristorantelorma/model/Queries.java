@@ -66,7 +66,7 @@ public final class Queries {
     public static final String INSERT_RESTAURANT =
         """
         INSERT INTO RISTORANTI
-        (username, nome_attività, p_va, ora_apertura, ora_chiusura)
+        (username, nome_attività, p_iva, ora_apertura, ora_chiusura)
         VALUES (?, ?, ?, ?, ?);
         """;
 
@@ -151,8 +151,8 @@ public final class Queries {
      */
     public static final String FIND_FOOD_BY_ID =
         """
-        SELECT * FROM VIVANTE
-        WHERE id = ?;
+        SELECT * FROM VIVANDE
+        WHERE codice = ?;
         """;
 
     /**
@@ -248,7 +248,7 @@ public final class Queries {
     public static final String SET_ORDER_DELIVERED =
         """
         UPDATE ORDINI
-        SET stato = 'pronto', ora_consegna = ?
+        SET stato = 'consegnato', ora_consegna = ?
         WHERE codice = ?;
         """;
 
