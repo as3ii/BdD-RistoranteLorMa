@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -63,73 +62,60 @@ public final class ResMenu extends JFrame {
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setLocationRelativeTo(null);
 
-        final List<Food> menuData;
-        final Restaurant restaurant;
-        final ClientUser client;
-
-        try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
-            final Result<Optional<Restaurant>> resRestaurant = Restaurant.DAO.find(conn, restaurantName);
-            if (!resRestaurant.isSuccess()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Errore nella ricerca del ristorante.\n" + resRestaurant.getErrorMessage(),
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            } else if (resRestaurant.getValue().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Il ristorante " + restaurantName + " non esiste.",
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-            restaurant = resRestaurant.getValue().get();
-
-            final Result<Collection<Food>> resFoods = Food.DAO.list(conn, restaurant);
-            if (!resFoods.isSuccess()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Errore nella raccolta della lista vivande.\n" + resFoods.getErrorMessage(),
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-            menuData = new ArrayList<>(resFoods.getValue());
-
-            final Result<Optional<ClientUser>> resClient = ClientUser.DAO.find(conn, username);
-            if (!resClient.isSuccess()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Errore nella ricerca del cliente.\n" + resClient.getErrorMessage(),
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            } else if (resClient.getValue().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "L'utente " + username + " non esiste.",
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-            client = resClient.getValue().get();
-
-            balance = client.getCredit();
-        } catch (SQLException e) {
+        final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+        final Result<Optional<Restaurant>> resRestaurant = Restaurant.DAO.find(conn, restaurantName);
+        if (!resRestaurant.isSuccess()) {
             JOptionPane.showMessageDialog(
                 this,
-                "Errore nel caricamento dei dati vivande o saldo: " + e.getMessage(),
+                "Errore nella ricerca del ristorante.\n" + resRestaurant.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        } else if (resRestaurant.getValue().isEmpty()) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Il ristorante " + restaurantName + " non esiste.",
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
             );
             return;
         }
+        final Restaurant restaurant = resRestaurant.getValue().get();
+
+        final Result<Collection<Food>> resFoods = Food.DAO.list(conn, restaurant);
+        if (!resFoods.isSuccess()) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Errore nella raccolta della lista vivande.\n" + resFoods.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+        final List<Food> menuData = new ArrayList<>(resFoods.getValue());
+
+        final Result<Optional<ClientUser>> resOptClient = ClientUser.DAO.find(conn, username);
+        if (!resOptClient.isSuccess()) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Errore nella ricerca del cliente.\n" + resOptClient.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        } else if (resOptClient.getValue().isEmpty()) {
+            JOptionPane.showMessageDialog(
+                this,
+                "L'utente " + username + " non esiste.",
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+        final ClientUser client = resOptClient.getValue().get();
+
+        balance = client.getCredit();
 
         final JPanel mainPanel = new JPanel(new BorderLayout());
 
@@ -188,69 +174,62 @@ public final class ResMenu extends JFrame {
                 JOptionPane.showMessageDialog(this, "Saldo insufficiente!");
                 return;
             }
-            try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
-                final Result<ClientUser> resClient = ClientUser.DAO.updateCredit(conn, client, balance.subtract(total));
-                if (!resClient.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "Errore nell'aggiornamento del bilancio del cliente.\n" + resClient.getErrorMessage(),
-                        ERROR_WINDOW_TITLE,
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-                balance = balance.subtract(total);
-
-                final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-                // TODO: properly handle shipping rate
-                final BigDecimal shippingRate = new BigDecimal("2.5");
-                final Result<WaitingOrder> resNewOrder = Order.DAO.insert(
-                    conn, restaurant, now, shippingRate, resClient.getValue(), orderedFood
-                );
-                if (!resNewOrder.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "Errore nel inserimento dell'ordine.\n" + resNewOrder.getErrorMessage(),
-                        ERROR_WINDOW_TITLE,
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-                // TODO: properly implement switch from
-                final Result<ReadyOrder> resOrder = ReadyOrder.DAO.from(conn, resNewOrder.getValue());
-                if (!resOrder.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "Errore nel aggiornamento dell'ordine.\n" + resOrder.getErrorMessage(),
-                        ERROR_WINDOW_TITLE,
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-                final ReadyOrder order = resOrder.getValue();
-
-                final Result<Map<Food, Integer>> resFoodRequested = Order.DAO.insertFoodRequested(
-                    conn, order.getId(), orderedFood
-                );
-                if (!resFoodRequested.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "Errore nel inserimento degli elementi dell'ordine.\n" + resFoodRequested.getErrorMessage(),
-                        ERROR_WINDOW_TITLE,
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-
-                JOptionPane.showMessageDialog(this, "Ordine inviato con successo!");
-                this.dispose();
-                restaurantsPage.setVisible(true);
-            } catch (SQLException ex) {
+            final Result<ClientUser> resClient = ClientUser.DAO.updateCredit(conn, client, balance.subtract(total));
+            if (!resClient.isSuccess()) {
                 JOptionPane.showMessageDialog(
                     this,
-                    "Errore nell'invio dell'ordine: " + ex.getMessage()
+                    "Errore nell'aggiornamento del bilancio del cliente.\n" + resClient.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
                 );
+                return;
             }
+            balance = balance.subtract(total);
+
+            final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+            // TODO: properly handle shipping rate
+            final BigDecimal shippingRate = new BigDecimal("2.5");
+            final Result<WaitingOrder> resNewOrder = Order.DAO.insert(
+                conn, restaurant, now, shippingRate, resClient.getValue(), orderedFood
+            );
+            if (!resNewOrder.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nel inserimento dell'ordine.\n" + resNewOrder.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            // TODO: properly implement switch from
+            final Result<ReadyOrder> resOrder = ReadyOrder.DAO.from(conn, resNewOrder.getValue());
+            if (!resOrder.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nel aggiornamento dell'ordine.\n" + resOrder.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            final ReadyOrder order = resOrder.getValue();
+
+            final Result<Map<Food, Integer>> resFoodRequested = Order.DAO.insertFoodRequested(
+                conn, order.getId(), orderedFood
+            );
+            if (!resFoodRequested.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nel inserimento degli elementi dell'ordine.\n" + resFoodRequested.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this, "Ordine inviato con successo!");
+            this.dispose();
+            restaurantsPage.setVisible(true);
         });
 
         buttonPanel.add(backButton);

@@ -212,90 +212,89 @@ public final class RegisterRestaurantPage {
             return;
         }
 
-        try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
-            final Result<Optional<User>> resUser = User.DAO.find(conn, username);
-            if (!resUser.isSuccess()) {
+        final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+        final Result<Optional<User>> resUser = User.DAO.find(conn, username);
+        if (!resUser.isSuccess()) {
+            JOptionPane.showMessageDialog(
+                mainFrame,
+                "Errore nella ricerca del utente.\n" + resUser.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        final RestaurantUser restaurantUser;
+        if (resUser.getValue().isEmpty()) {
+            // If the user do not exists
+            final Result<User> resInsert = User.DAO.insert(
+                conn, name, surname, username, password, phone,
+                email, city, street, houseNumber, Role.RESTAURANT
+            );
+            if (!resInsert.isSuccess()) {
                 JOptionPane.showMessageDialog(
                     mainFrame,
-                    "Errore nella ricerca del utente.\n" + resUser.getErrorMessage(),
+                    "Registrazione fallita.\n" + resInsert.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
                 );
                 return;
             }
-
-            final RestaurantUser restaurantUser;
-            if (resUser.getValue().isEmpty()) {
-                // If the user do not exists
-                final Result<User> resInsert = User.DAO.insert(
-                    conn, name, surname, username, password, phone,
-                    email, city, street, houseNumber, Role.RESTAURANT
-                );
-                if (!resInsert.isSuccess()) {
+            restaurantUser = (RestaurantUser) resInsert.getValue();
+        } else {
+            // If the user already exists
+            final User tmpUser = resUser.getValue().get();
+            if (!(tmpUser instanceof RestaurantUser)) {
+                try (PreparedStatement updateStmt = conn.prepareStatement(
+                        "UPDATE utenti SET ruolo = ? WHERE username = ?")) {
+                    updateStmt.setString(1, "ristorante");
+                    updateStmt.setString(2, username);
+                    updateStmt.executeUpdate();
+                } catch (SQLException e) {
                     JOptionPane.showMessageDialog(
                         mainFrame,
-                        "Registrazione fallita.\n" + resInsert.getErrorMessage(),
+                        "Errore durante la registrazione: " + e.getMessage(),
                         ERROR_WINDOW_TITLE,
                         JOptionPane.ERROR_MESSAGE
                     );
                     return;
                 }
-                restaurantUser = (RestaurantUser) resInsert.getValue();
-            } else {
-                // If the user already exists
-                final User tmpUser = resUser.getValue().get();
-                if (!(tmpUser instanceof RestaurantUser)) {
-                    try (PreparedStatement updateStmt = conn.prepareStatement(
-                            "UPDATE utenti SET ruolo = ? WHERE username = ?")) {
-                        updateStmt.setString(1, "ristorante");
-                        updateStmt.setString(2, username);
-                        updateStmt.executeUpdate();
-                    }
-                }
-                restaurantUser = (RestaurantUser) tmpUser;
             }
+            restaurantUser = (RestaurantUser) tmpUser;
+        }
 
-            final Timestamp openingTs = parseTime(openingTime);
-            final Timestamp closingTs = parseTime(closingTime);
-            if (openingTs == null || closingTs == null) {
-                JOptionPane.showMessageDialog(
-                    mainFrame,
-                    "Formato ora non valido. Usa HH:mm.",
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-            final Result<Restaurant> restResult = Restaurant.DAO.insert(
-                conn, restaurantUser, restaurantName, partitaIVA, openingTs, closingTs
-            );
-            if (!restResult.isSuccess()) {
-                JOptionPane.showMessageDialog(
-                    mainFrame,
-                    "Errore inserimento ristorante: " + restResult.getErrorMessage(),
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-
+        final Timestamp openingTs = parseTime(openingTime);
+        final Timestamp closingTs = parseTime(closingTime);
+        if (openingTs == null || closingTs == null) {
             JOptionPane.showMessageDialog(
                 mainFrame,
-                "Registrazione ristorante avvenuta con successo!",
-                "Successo",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            this.hide();
-            parentPage.show();
-
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                mainFrame,
-                "Errore durante la registrazione: " + ex.getMessage(),
+                "Formato ora non valido. Usa HH:mm.",
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
             );
+            return;
         }
+        final Result<Restaurant> restResult = Restaurant.DAO.insert(
+            conn, restaurantUser, restaurantName, partitaIVA, openingTs, closingTs
+        );
+        if (!restResult.isSuccess()) {
+            JOptionPane.showMessageDialog(
+                mainFrame,
+                "Errore inserimento ristorante: " + restResult.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        JOptionPane.showMessageDialog(
+            mainFrame,
+            "Registrazione ristorante avvenuta con successo!",
+            "Successo",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+        this.hide();
+        parentPage.show();
     }
 
     private Timestamp parseTime(final String timeStr) {

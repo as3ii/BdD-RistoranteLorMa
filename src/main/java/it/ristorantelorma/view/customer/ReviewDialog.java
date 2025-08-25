@@ -2,7 +2,6 @@ package it.ristorantelorma.view.customer;
 
 import java.awt.FlowLayout;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -69,75 +68,67 @@ public final class ReviewDialog extends JDialog {
             final Vote vote = (Vote) voteComboBox.getSelectedItem();
             final String comment = reviewArea.getText();
 
-            try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
-                final Result<Optional<ClientUser>> userResult = ClientUser.DAO.find(conn, username);
-                if (!userResult.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "Errore nella ricerca del cliente: " + userResult.getErrorMessage(),
-                        ERROR_WINDOW_TITLE,
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                } else if (userResult.getValue().isEmpty()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "Il cliente " + username + " non esiste.",
-                        ERROR_WINDOW_TITLE,
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-                final ClientUser user = userResult.getValue().get();
-
-                final Result<Optional<Restaurant>> restaurantResult = Restaurant.DAO.find(conn, restaurantName);
-                if (!restaurantResult.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                       this,
-                       "Errore nella ricerca del ristorante: " + restaurantResult.getErrorMessage(),
-                       ERROR_WINDOW_TITLE,
-                       JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                } else if (restaurantResult.getValue().isEmpty()) {
-                    JOptionPane.showMessageDialog(
-                       this,
-                       "Il ristorante " + restaurantName + " non esiste.",
-                       ERROR_WINDOW_TITLE,
-                       JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-                final Restaurant restaurant = restaurantResult.getValue().get();
-
-                final Result<Review> reviewResult = Review.DAO.insert(
-                    conn,
-                    restaurant,
-
-                    Timestamp.valueOf(LocalDateTime.now()),
-                    vote,
-                    comment.isEmpty() ? Optional.empty() : Optional.of(comment),
-                    user
-                );
-                if (!reviewResult.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                       this,
-                       "Errore nel inserimento della recensione: " + reviewResult.getErrorMessage(),
-                       ERROR_WINDOW_TITLE,
-                       JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-                JOptionPane.showMessageDialog(this, "Recensione salvata!");
-                dispose();
-            } catch (SQLException ex) {
+            final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+            final Result<Optional<ClientUser>> userResult = ClientUser.DAO.find(conn, username);
+            if (!userResult.isSuccess()) {
                 JOptionPane.showMessageDialog(
                     this,
-                    "Errore nel salvataggio: " + ex.getMessage(),
+                    "Errore nella ricerca del cliente: " + userResult.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
                 );
+                return;
+            } else if (userResult.getValue().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Il cliente " + username + " non esiste.",
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
             }
+            final ClientUser user = userResult.getValue().get();
+
+            final Result<Optional<Restaurant>> restaurantResult = Restaurant.DAO.find(conn, restaurantName);
+            if (!restaurantResult.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nella ricerca del ristorante: " + restaurantResult.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            } else if (restaurantResult.getValue().isEmpty()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Il ristorante " + restaurantName + " non esiste.",
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            final Restaurant restaurant = restaurantResult.getValue().get();
+
+            final Result<Review> reviewResult = Review.DAO.insert(
+                conn,
+                restaurant,
+
+                Timestamp.valueOf(LocalDateTime.now()),
+                vote,
+                comment.isEmpty() ? Optional.empty() : Optional.of(comment),
+                user
+            );
+            if (!reviewResult.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Errore nel inserimento della recensione: " + reviewResult.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            JOptionPane.showMessageDialog(this, "Recensione salvata!");
+            dispose();
         });
 
         setContentPane(panel);

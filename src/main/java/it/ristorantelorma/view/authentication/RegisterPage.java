@@ -29,7 +29,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.function.Consumer;
 import javax.swing.JOptionPane;
 
@@ -347,48 +346,40 @@ public class RegisterPage {
         final boolean isDeliveryMan = deliveryManCheckBox.isSelected();
         final Role role = isDeliveryMan ? Role.DELIVERYMAN : Role.CLIENT;
 
-        try (Connection conn = DatabaseConnectionManager.getInstance().getConnection()) {
-            final Result<User> resInsert = User.DAO.insert(
-                conn, name, surname, username, password, phone,
-                email, city, street, houseNumber, role
+        final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+        final Result<User> resInsert = User.DAO.insert(
+            conn, name, surname, username, password, phone,
+            email, city, street, houseNumber, role
+        );
+        if (!resInsert.isSuccess()) {
+            JOptionPane.showMessageDialog(
+                mainFrame,
+                "Registrazione fallita.\n" + resInsert.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
             );
-            if (!resInsert.isSuccess()) {
+            return;
+        }
+        if (!isDeliveryMan) {
+            final ClientUser user = (ClientUser) resInsert.getValue();
+            final Result<ClientUser> resCredit = ClientUser.DAO.updateCredit(conn, user, credit);
+            if (!resCredit.isSuccess()) {
                 JOptionPane.showMessageDialog(
                     mainFrame,
-                    "Registrazione fallita.\n" + resInsert.getErrorMessage(),
+                    "Registrazione fallita.\n" + resCredit.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
                 );
                 return;
             }
-            if (!isDeliveryMan) {
-                final ClientUser user = (ClientUser) resInsert.getValue();
-                final Result<ClientUser> resCredit = ClientUser.DAO.updateCredit(conn, user, credit);
-                if (!resCredit.isSuccess()) {
-                    JOptionPane.showMessageDialog(
-                        mainFrame,
-                        "Registrazione fallita.\n" + resCredit.getErrorMessage(),
-                        ERROR_WINDOW_TITLE,
-                        JOptionPane.ERROR_MESSAGE
-                    );
-                    return;
-                }
-            }
-            JOptionPane.showMessageDialog(
-                mainFrame,
-                "Registrazione avvenuta con successo!",
-                "Successo",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-            handleResetButtonClick();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                mainFrame,
-                "Errore durante la registrazione: " + ex.getMessage(),
-                ERROR_WINDOW_TITLE,
-                JOptionPane.ERROR_MESSAGE
-            );
         }
+        JOptionPane.showMessageDialog(
+            mainFrame,
+            "Registrazione avvenuta con successo!",
+            "Successo",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+        handleResetButtonClick();
     }
 
     /**
