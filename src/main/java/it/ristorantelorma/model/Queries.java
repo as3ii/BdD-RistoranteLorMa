@@ -31,7 +31,7 @@ public final class Queries {
         """
         UPDATE UTENTI
         SET credito = ?
-        WHERE usename = ?;
+        WHERE username = ?;
         """;
 
     /**
