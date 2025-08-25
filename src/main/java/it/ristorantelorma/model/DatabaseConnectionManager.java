@@ -14,15 +14,19 @@ import it.ristorantelorma.controller.SimpleLogger;
  * Handle database connections and DataSource.
  */
 public final class DatabaseConnectionManager {
-    private final Connection connection;
-    private final String className = getClass().getName();
-    private final Logger logger = SimpleLogger.getLogger(className);
 
     private static final String DEFAULT_HOSTNAME = "localhost";
     private static final int DEFAULT_PORT = 3306;
     private static final String DEFAULT_DBNAME = "APP_RISTORANTI";
     private static final String DEFAULT_USER = "root";
     private static final String DEFAULT_PASSWORD = "";
+
+    private final String url;
+    private final String user;
+    private final String password;
+    private final String className = getClass().getName();
+    private final Logger logger = SimpleLogger.getLogger(className);
+    private Connection connection;
 
     private static final class LazyConnectionManager {
         private static final DatabaseConnectionManager DB = new DatabaseConnectionManager();
@@ -41,10 +45,10 @@ public final class DatabaseConnectionManager {
             port = DEFAULT_PORT;
         }
         final String dbName = env.getOrDefault("DB_NAME", DEFAULT_DBNAME);
-        final String user = env.getOrDefault("DB_USER", DEFAULT_USER);
-        final String password = env.getOrDefault("DB_PASSWORD", DEFAULT_PASSWORD);
+        user = env.getOrDefault("DB_USER", DEFAULT_USER);
+        password = env.getOrDefault("DB_PASSWORD", DEFAULT_PASSWORD);
 
-        final String url = String.format("jdbc:mysql://%s:%d/%s", hostname, port, dbName);
+        url = String.format("jdbc:mysql://%s:%d/%s", hostname, port, dbName);
 
         try {
             logger.log(Level.INFO, "Connecting to " + url);
@@ -58,7 +62,7 @@ public final class DatabaseConnectionManager {
     /**
     * @return copy of a DatabaseConnectionManager
     */
-    public static DatabaseConnectionManager getInstance() {
+    public static synchronized DatabaseConnectionManager getInstance() {
         return LazyConnectionManager.DB;
     }
 
@@ -67,7 +71,31 @@ public final class DatabaseConnectionManager {
      * TODO: switch to a DriverManager
      */
     @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "This is a demo, not production code")
-    public Connection getConnection() {
+    public synchronized Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                logger.log(Level.INFO, "Connecting to " + url);
+                connection = DriverManager.getConnection(url, user, password);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Cannot create a connection to the database", e);
+            throw new ExceptionInInitializerError(e);
+        }
         return connection;
+    }
+
+    /**
+     * Close connection to the database.
+     */
+    public synchronized void close() {
+        logger.log(Level.INFO, "Closing DB connection");
+        if (connection != null) {
+            try {
+                connection.close();
+                connection = null;
+            } catch (SQLException e) {
+                logger.log(Level.SEVERE, "Failed closing connection to the database", e);
+            }
+        }
     }
 }
