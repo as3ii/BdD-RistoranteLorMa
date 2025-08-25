@@ -202,7 +202,7 @@ public final class FoodType {
                     connection,
                     Queries.INSERT_FOOD_TYPE,
                     name,
-                    type
+                    type.toSQLStr()
                 );
             ) {
                 final int rows = statement.executeUpdate();

@@ -44,4 +44,34 @@ public enum Role {
                 );
         }
     }
+
+    /**
+     * @param role
+     * @return string equivalent to be used in SQL queries
+     * @throws IllegalArgumentException if role is invalid
+     */
+    public static String toSQLStr(final Role role) {
+        switch (role) {
+            case ADMIN:
+                return "admin";
+            case RESTAURANT:
+                return "ristorante";
+            case CLIENT:
+                return "cliente";
+            case DELIVERYMAN:
+                return "fattorino";
+            default:
+                throw new IllegalArgumentException(
+                    "Invalid role value: " + role.toString()
+                );
+        }
+    }
+
+    /**
+     * @return string equivalent to be used in SQL queries
+     * @throws IllegalArgumentException if role is invalid
+     */
+    public String toSQLStr() {
+        return toSQLStr(this);
+    }
 }

@@ -194,11 +194,11 @@ public abstract class Order {
          * @return Map<Food,Integer> if no error is encountered, error otherwise
          */
         public static Result<Map<Food, Integer>> getFoodList(
-             final Connection connection,
-             final Order order
-         ) {
-             return getFoodList(connection, order.getId());
-         }
+            final Connection connection,
+            final Order order
+        ) {
+            return getFoodList(connection, order.getId());
+        }
 
         static Result<Map<Food, Integer>> getFoodList(
             final Connection connection,
@@ -525,7 +525,7 @@ public abstract class Order {
                     final Result<Order> resOrder = fromOrderResultSet(
                         connection,
                         result
-                        );
+                    );
                     if (resOrder.isSuccess()) {
                         return Result.success(
                             Optional.of(
@@ -687,12 +687,11 @@ public abstract class Order {
             final Connection connection,
             final State state
         ) {
-            final String stateStr = State.toSQLStr(state);
             try (
                 PreparedStatement statement = DBHelper.prepare(
                     connection,
                     Queries.LIST_ORDERS_BY_STATE,
-                    stateStr
+                    state.toSQLStr()
                 );
                 ResultSet result = statement.executeQuery();
             ) {
@@ -701,7 +700,7 @@ public abstract class Order {
                     final Result<Order> resOrder = fromOrderResultSet(
                         connection,
                         result
-                        );
+                    );
                     if (!resOrder.isSuccess()) {
                         // Propagate error
                         return Result.failure(resOrder.getErrorMessage());

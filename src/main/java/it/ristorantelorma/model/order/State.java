@@ -74,4 +74,12 @@ public enum State {
                 );
         }
     }
+
+    /**
+     * @return string equivalent to be used in SQL queries
+     * @throws IllegalArgumentException if state is invalid
+     */
+    public String toSQLStr() {
+        return toSQLStr(this);
+    }
 }

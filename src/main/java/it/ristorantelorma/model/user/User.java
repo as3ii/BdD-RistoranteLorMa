@@ -260,7 +260,7 @@ public abstract class User {
                     street,
                     houseNumber,
                     credit,
-                    role
+                    role.toSQLStr()
                 );
             ) {
                 final int rows = statement.executeUpdate();

@@ -318,7 +318,7 @@ public final class Food {
                     name,
                     restaurant.getRestaurantName(),
                     price,
-                    type
+                    type.getName()
                 );
             ) {
                 final int rows = statement.executeUpdate();
