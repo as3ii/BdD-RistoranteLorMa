@@ -261,7 +261,7 @@ public final class Review {
                 } else {
                     try (ResultSet keys = statement.getGeneratedKeys()) {
                         if (keys.next()) {
-                            final int id = keys.getInt("codice");
+                            final int id = keys.getInt(1);
                             return Result.success(
                                 new Review(
                                     id,
