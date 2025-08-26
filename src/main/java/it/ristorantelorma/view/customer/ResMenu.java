@@ -163,7 +163,10 @@ public final class ResMenu extends JFrame {
             final BigDecimal total;
             final Map<Food, Integer> orderedFood = new HashMap<>();
             for (int i = 0; i < quantitySpinners.length; i++) {
-                orderedFood.put(menuData.get(i), (Integer) quantitySpinners[i].getValue());
+                final int qty = (Integer) quantitySpinners[i].getValue();
+                if (qty > 0) {
+                    orderedFood.put(menuData.get(i), qty);
+                }
             }
             total = orderedFood
                     .entrySet()
