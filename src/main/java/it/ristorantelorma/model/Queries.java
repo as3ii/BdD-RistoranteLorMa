@@ -201,6 +201,7 @@ public final class Queries {
         """
         INSERT INTO DETTAGLIO_ORDINI
         (codice_vivanda, codice_ordine, quantità)
+        VALUES (?, ?, ?);
         """;
 
     /**
@@ -219,7 +220,7 @@ public final class Queries {
         """
         INSERT INTO ORDINI
         (nome_attività, data_ora, stato, tariffa_spedizione, username_cliente)
-        (?, ?, 'attesa', ?, ?)
+        VALUES (?, ?, 'attesa', ?, ?);
         """;
 
     /**
