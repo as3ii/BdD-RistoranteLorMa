@@ -1,5 +1,6 @@
 package it.ristorantelorma.view.authentication;
 
+import it.ristorantelorma.controller.PasswordManager;
 import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
@@ -227,8 +228,18 @@ public final class RegisterRestaurantPage {
         final RestaurantUser restaurantUser;
         if (resUser.getValue().isEmpty()) {
             // If the user do not exists
+            final String hashedPassword = PasswordManager.newEncodedPassword(password);
+            if (hashedPassword == null) {
+                JOptionPane.showMessageDialog(
+                    mainFrame,
+                    "Errore durante la cifratura della password",
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
             final Result<User> resInsert = User.DAO.insert(
-                conn, name, surname, username, password, phone,
+                conn, name, surname, username, hashedPassword, phone,
                 email, city, street, houseNumber, Role.RESTAURANT
             );
             if (!resInsert.isSuccess()) {

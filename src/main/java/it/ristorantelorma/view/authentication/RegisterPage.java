@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.util.function.Consumer;
 import javax.swing.JOptionPane;
-
+import it.ristorantelorma.controller.PasswordManager;
 import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.user.ClientUser;
@@ -345,10 +345,20 @@ public class RegisterPage {
         }
         final boolean isDeliveryMan = deliveryManCheckBox.isSelected();
         final Role role = isDeliveryMan ? Role.DELIVERYMAN : Role.CLIENT;
+        final String hashedPassword = PasswordManager.newEncodedPassword(password);
+        if (hashedPassword == null) {
+            JOptionPane.showMessageDialog(
+                mainFrame,
+                "Errore durante la cifratura della password",
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
 
         final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
         final Result<User> resInsert = User.DAO.insert(
-            conn, name, surname, username, password, phone,
+            conn, name, surname, username, hashedPassword, phone,
             email, city, street, houseNumber, role
         );
         if (!resInsert.isSuccess()) {

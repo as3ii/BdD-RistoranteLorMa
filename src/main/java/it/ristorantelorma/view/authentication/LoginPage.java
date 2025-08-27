@@ -19,7 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-
+import it.ristorantelorma.controller.PasswordManager;
 import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.user.User;
@@ -184,7 +184,7 @@ public final class LoginPage implements Serializable {
 
         if (result.getValue().isPresent()) {
             final User user = result.getValue().get();
-            if (user.getPassword().equals(password)) {
+            if (PasswordManager.checkPassword(password, user.getPassword())) {
                 this.hide();
                 SwingUtilities.invokeLater(() -> {
                     if ("DELIVERYMAN".equalsIgnoreCase(user.getRole().name())) {
