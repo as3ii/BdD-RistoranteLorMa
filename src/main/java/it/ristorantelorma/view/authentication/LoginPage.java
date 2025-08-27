@@ -23,8 +23,10 @@ import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.user.User;
 import it.ristorantelorma.view.FirstPage;
+import it.ristorantelorma.view.admin.AdminDashboard;
 import it.ristorantelorma.view.customer.RestaurantsPage;
 import it.ristorantelorma.view.deliveryman.DeliverymanPage;
+
 
 /**
  * Rappresenta la pagina di login dell'applicazione.
@@ -185,13 +187,19 @@ public final class LoginPage {
             if (PasswordManager.checkPassword(password, user.getPassword())) {
                 this.hide();
                 SwingUtilities.invokeLater(() -> {
-                    if ("DELIVERYMAN".equalsIgnoreCase(user.getRole().name())) {
-                        new DeliverymanPage(conn, username).setVisible(true);
-                    } else {
-                        final RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username);
-                        restaurantsPage.setVisible(true);
+                    switch (user.getRole()) {
+                        case ADMIN -> {
+                            new AdminDashboard().show();
+                        }
+                        case DELIVERYMAN -> {
+                            new DeliverymanPage(conn, username).setVisible(true);
+                        }
+                        default -> {
+                            final RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username);
+                            restaurantsPage.setVisible(true);
+                        }
                     }
-                });
+});
             } else {
                 JOptionPane.showMessageDialog(this.mainFrame,
                     "Username o password errati!",
