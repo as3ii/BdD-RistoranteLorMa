@@ -66,6 +66,7 @@ public class RegisterPage {
     private final JTextField emailField;
     private final JTextField creditField;
     private final JCheckBox deliveryManCheckBox;
+    private final JCheckBox adminCheckBox;
     private JButton registerButton; // aggiungi questo campo
 
     /**
@@ -84,7 +85,8 @@ public class RegisterPage {
         this.phoneField = new JTextField(TEXT_FIELD_COLUMNS);
         this.emailField = new JTextField(TEXT_FIELD_COLUMNS);
         this.creditField = new JTextField(TEXT_FIELD_COLUMNS);
-        this.deliveryManCheckBox = new JCheckBox("Registrati come fattorino");
+    this.deliveryManCheckBox = new JCheckBox("Registrati come fattorino");
+    this.adminCheckBox = new JCheckBox("Registrati come amministratore");
         initializeFrame();
         initializeUI();
     }
@@ -146,6 +148,13 @@ public class RegisterPage {
             gbc.anchor = GridBagConstraints.CENTER;
             formPanel.add(deliveryManCheckBox, gbc);
 
+            // Checkbox for admin
+            gbc.gridx = 0;
+            gbc.gridy = row++;
+            gbc.gridwidth = 2;
+            gbc.anchor = GridBagConstraints.CENTER;
+            formPanel.add(adminCheckBox, gbc);
+
             final JPanel buttonPanel = createButtonPanel();
             gbc.gridx = 0;
             gbc.gridy = row;
@@ -184,6 +193,12 @@ public class RegisterPage {
         emailField.getDocument().addDocumentListener(docListener);
         creditField.getDocument().addDocumentListener(docListener);
         deliveryManCheckBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(final ItemEvent e) {
+                updateRegisterButtonState();
+            }
+        });
+        adminCheckBox.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(final ItemEvent e) {
                 updateRegisterButtonState();
@@ -342,7 +357,16 @@ public class RegisterPage {
             return;
         }
         final boolean isDeliveryMan = deliveryManCheckBox.isSelected();
-        final Role role = isDeliveryMan ? Role.DELIVERYMAN : Role.CLIENT;
+
+        final boolean isAdmin = adminCheckBox.isSelected();
+        final Role role;
+        if (isAdmin) {
+            role = Role.ADMIN;
+        } else if (isDeliveryMan) {
+            role = Role.DELIVERYMAN;
+        } else {
+            role = Role.CLIENT;
+        }
         final String hashedPassword = PasswordManager.newEncodedPassword(password);
         if (hashedPassword == null) {
             JOptionPane.showMessageDialog(
@@ -404,7 +428,8 @@ public class RegisterPage {
         phoneField.setText("");
         emailField.setText("");
         creditField.setText("");
-        deliveryManCheckBox.setSelected(false);
+    deliveryManCheckBox.setSelected(false);
+    adminCheckBox.setSelected(false);
     }
 
     /**
