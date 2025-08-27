@@ -13,10 +13,11 @@ dependencies {
     // mysql connector
     implementation("com.mysql:mysql-connector-j:9.3.0")
     // Use JUnit Jupiter for testing.
-    val junitVersion = "5.13.1"
+    val junitVersion = "5.13.4"
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // SpotBugs
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.9.3")
