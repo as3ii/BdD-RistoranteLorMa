@@ -23,9 +23,8 @@ import it.ristorantelorma.view.authentication.LoginPage;
 /**
  * Restaurant selection window.
  */
-public final class RestaurantsPage extends JFrame {
+public final class RestaurantsPage {
 
-    public static final long serialVersionUID = 201742972L; // Random
     private static final String ERROR_WINDOW_TITLE = "Errore";
     private static final int WINDOW_WIDTH = 500;
     private static final int WINDOW_HEIGHT = 500;
@@ -35,6 +34,7 @@ public final class RestaurantsPage extends JFrame {
     private static final int TABLE_COLUMN_MAX_WIDTH = 70;
 
     private final LoginPage loginPage;
+    private final JFrame frame;
 
     /**
      * @param loginPage
@@ -47,10 +47,10 @@ public final class RestaurantsPage extends JFrame {
     )
     public RestaurantsPage(final LoginPage loginPage, final Connection connection, final String username) {
         this.loginPage = loginPage;
-        setTitle("RestaurantsPage");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setLocationRelativeTo(null);
+        frame = new JFrame("RestaurantsPage");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        frame.setLocationRelativeTo(null);
 
         final JPanel mainPanel = new JPanel(new BorderLayout());
 
@@ -61,7 +61,7 @@ public final class RestaurantsPage extends JFrame {
             restaurants = result.getValue();
         } else {
             JOptionPane.showMessageDialog(
-                this,
+                frame,
                 "Errore nel caricamento dei ristoranti: " + result.getErrorMessage(),
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
@@ -101,7 +101,7 @@ public final class RestaurantsPage extends JFrame {
                     final String restaurantName = data[row][0];
                     // Open the menu window for the selected restaurant
                     SwingUtilities.invokeLater(() -> {
-                        RestaurantsPage.this.setVisible(false);
+                        frame.setVisible(false);
                         final ResMenu resMenu = new ResMenu(restaurantName, RestaurantsPage.this, username);
                         resMenu.setVisible(true);
                     });
@@ -118,12 +118,21 @@ public final class RestaurantsPage extends JFrame {
         buttonPanel.add(logoutButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        add(mainPanel);
+        frame.add(mainPanel);
     }
 
     private void handleLogout() {
-        this.setVisible(false); // Close this window
+        frame.setVisible(false); // Close this window
         loginPage.handleReset(); // Reset fields of loginPage
         loginPage.show(); // Show loginPage window
+    }
+
+    /**
+     * Shows or hides the Window depending on the value of parameter b.
+     * @see JFrame#setVisible(boolean)
+     * @param b if true makes the window visible, otherwise hides the window
+     */
+    public void setVisible(final boolean b) {
+        frame.setVisible(b);
     }
 }

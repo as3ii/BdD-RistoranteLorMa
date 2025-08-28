@@ -39,9 +39,8 @@ import it.ristorantelorma.model.user.ClientUser;
 /**
  * Food selection menu for an order.
  */
-public final class ResMenu extends JFrame {
+public final class ResMenu {
 
-    public static final long serialVersionUID = 57895133L; // Random
     private static final String ERROR_WINDOW_TITLE = "Errore";
     private static final int WINDOW_WIDTH = 900;
     private static final int WINDOW_HEIGHT = 600;
@@ -50,6 +49,7 @@ public final class ResMenu extends JFrame {
     private static final int MAX_QUANTITY = 99;
 
     private BigDecimal balance;
+    private final JFrame frame;
 
     /**
      * @param restaurantName
@@ -57,16 +57,16 @@ public final class ResMenu extends JFrame {
      * @param username
      */
     public ResMenu(final String restaurantName, final RestaurantsPage restaurantsPage, final String username) {
-        setTitle("DeliveryDB");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setLocationRelativeTo(null);
+        frame = new JFrame("DeliveryDB");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        frame.setLocationRelativeTo(null);
 
         final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
         final Result<Optional<Restaurant>> resRestaurant = Restaurant.DAO.find(conn, restaurantName);
         if (!resRestaurant.isSuccess()) {
             JOptionPane.showMessageDialog(
-                this,
+                frame,
                 "Errore nella ricerca del ristorante.\n" + resRestaurant.getErrorMessage(),
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
@@ -74,7 +74,7 @@ public final class ResMenu extends JFrame {
             return;
         } else if (resRestaurant.getValue().isEmpty()) {
             JOptionPane.showMessageDialog(
-                this,
+                frame,
                 "Il ristorante " + restaurantName + " non esiste.",
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
@@ -86,7 +86,7 @@ public final class ResMenu extends JFrame {
         final Result<Collection<Food>> resFoods = Food.DAO.list(conn, restaurant);
         if (!resFoods.isSuccess()) {
             JOptionPane.showMessageDialog(
-                this,
+                frame,
                 "Errore nella raccolta della lista vivande.\n" + resFoods.getErrorMessage(),
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
@@ -98,7 +98,7 @@ public final class ResMenu extends JFrame {
         final Result<Optional<ClientUser>> resOptClient = ClientUser.DAO.find(conn, username);
         if (!resOptClient.isSuccess()) {
             JOptionPane.showMessageDialog(
-                this,
+                frame,
                 "Errore nella ricerca del cliente.\n" + resOptClient.getErrorMessage(),
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
@@ -106,7 +106,7 @@ public final class ResMenu extends JFrame {
             return;
         } else if (resOptClient.getValue().isEmpty()) {
             JOptionPane.showMessageDialog(
-                this,
+                frame,
                 "L'utente " + username + " non esiste.",
                 ERROR_WINDOW_TITLE,
                 JOptionPane.ERROR_MESSAGE
@@ -156,7 +156,7 @@ public final class ResMenu extends JFrame {
 
         // Implementazione azioni bottoni
         backButton.addActionListener(e -> {
-            this.dispose();
+            frame.dispose();
             restaurantsPage.setVisible(true);
         });
         sendOrderButton.addActionListener(e -> {
@@ -174,13 +174,13 @@ public final class ResMenu extends JFrame {
                     .map(el -> el.getKey().getPrice().multiply(new BigDecimal(el.getValue())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             if (total.compareTo(balance) > 0) {
-                JOptionPane.showMessageDialog(this, "Saldo insufficiente!");
+                JOptionPane.showMessageDialog(frame, "Saldo insufficiente!");
                 return;
             }
             final Result<ClientUser> resClient = ClientUser.DAO.updateCredit(conn, client, balance.subtract(total));
             if (!resClient.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    frame,
                     "Errore nell'aggiornamento del bilancio del cliente.\n" + resClient.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -197,7 +197,7 @@ public final class ResMenu extends JFrame {
             );
             if (!resNewOrder.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    frame,
                     "Errore nel inserimento dell'ordine.\n" + resNewOrder.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -208,7 +208,7 @@ public final class ResMenu extends JFrame {
             final Result<ReadyOrder> resOrder = ReadyOrder.DAO.from(conn, resNewOrder.getValue());
             if (!resOrder.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    frame,
                     "Errore nel aggiornamento dell'ordine.\n" + resOrder.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -222,7 +222,7 @@ public final class ResMenu extends JFrame {
             );
             if (!resFoodRequested.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    frame,
                     "Errore nel inserimento degli elementi dell'ordine.\n" + resFoodRequested.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -230,8 +230,8 @@ public final class ResMenu extends JFrame {
                 return;
             }
 
-            JOptionPane.showMessageDialog(this, "Ordine inviato con successo!");
-            this.dispose();
+            JOptionPane.showMessageDialog(frame, "Ordine inviato con successo!");
+            frame.dispose();
             restaurantsPage.setVisible(true);
         });
 
@@ -263,7 +263,7 @@ public final class ResMenu extends JFrame {
 
         // Implementazione azione bottone Reviews
         reviewsButton.addActionListener(e -> {
-            final ReviewDialog dialog = new ReviewDialog(this, restaurantName, username);
+            final ReviewDialog dialog = new ReviewDialog(frame, restaurantName, username);
             dialog.setVisible(true);
         });
 
@@ -278,7 +278,7 @@ public final class ResMenu extends JFrame {
 
         mainPanel.add(infoPanel, BorderLayout.EAST);
 
-        setContentPane(mainPanel);
+        frame.setContentPane(mainPanel);
 
         // Dopo aver creato totalLabel:
         for (final JSpinner spinner : quantitySpinners) {
@@ -291,5 +291,14 @@ public final class ResMenu extends JFrame {
                 totalLabel.setText("Total: $" + total.toPlainString());
             });
         }
+    }
+
+    /**
+     * Shows or hides the Window depending on the value of parameter b.
+     * @see JFrame#setVisible(boolean)
+     * @param b if true makes the window visible, otherwise hides the window
+     */
+    public void setVisible(final boolean b) {
+        frame.setVisible(b);
     }
 }

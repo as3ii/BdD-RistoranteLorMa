@@ -33,9 +33,8 @@ import it.ristorantelorma.model.user.DeliverymanUser;
 /**
  * Deliveryman-specific page to handle order acceptance and delivery.
  */
-public final class DeliverymanPage extends JFrame {
+public final class DeliverymanPage {
 
-    public static final long serialVersionUID = 632022973L; // Random
     private static final String ERROR_WINDOW_TITLE = "Errore";
     private static final int MAIN_WINDOW_WIDTH = 400;
     private static final int MAIN_WINDOW_HEIGHT = 400;
@@ -49,19 +48,20 @@ public final class DeliverymanPage extends JFrame {
 
     private final JButton showOrdersButton;
     private final JButton viewAcceptedButton;
+    private final JFrame frame;
 
     /**
      * @param conn
      * @param username
      */
     public DeliverymanPage(final Connection conn, final String username) {
-        super("DeliveryDB");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
-        setLocationRelativeTo(null);
-        setResizable(false);
+        frame = new JFrame("DeliveryDB");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
 
-        setLayout(new BorderLayout());
+        frame.setLayout(new BorderLayout());
 
         final JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
@@ -75,7 +75,7 @@ public final class DeliverymanPage extends JFrame {
         centerPanel.add(Box.createVerticalStrut(EMPTY_GAP_HEIGHT));
         centerPanel.add(viewAcceptedButton);
 
-        add(centerPanel, BorderLayout.CENTER);
+        frame.add(centerPanel, BorderLayout.CENTER);
 
         showOrdersButton.addActionListener(e -> {
             final Collection<ReadyOrder> readyOrders;
@@ -84,7 +84,7 @@ public final class DeliverymanPage extends JFrame {
                 readyOrders = result.getValue();
             } else {
                 JOptionPane.showMessageDialog(
-                    this,
+                    frame,
                     "Errore nel recupero degli ordini: " + result.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -134,7 +134,7 @@ public final class DeliverymanPage extends JFrame {
                             + "<b>Compenso:</b> $" + order.getShippingRate() + "</html>";
 
                         final int choice = JOptionPane.showConfirmDialog(
-                            null,
+                            frame,
                             details + "Sei sicuro di voler accettare l'ordine?",
                             "Accetta Ordine",
                             JOptionPane.YES_NO_OPTION,
@@ -145,7 +145,7 @@ public final class DeliverymanPage extends JFrame {
                             final Optional<DeliverymanUser> optDeliveryman = DeliverymanUser.DAO.find(conn, username).getValue();
                             if (optDeliveryman.isEmpty()) {
                                 JOptionPane.showMessageDialog(
-                                    null,
+                                    frame,
                                     "Deliveryman non trovato!",
                                     ERROR_WINDOW_TITLE,
                                     JOptionPane.ERROR_MESSAGE
@@ -156,7 +156,7 @@ public final class DeliverymanPage extends JFrame {
                             final var acceptResult = AcceptedOrder.DAO.from(conn, order, now, deliveryman);
                             if (acceptResult.isSuccess()) {
                                 JOptionPane.showMessageDialog(
-                                    null,
+                                    frame,
                                     "Ordine accettato!",
                                     "Conferma",
                                     JOptionPane.INFORMATION_MESSAGE
@@ -165,7 +165,7 @@ public final class DeliverymanPage extends JFrame {
                                 showOrdersButton.doClick(); // Reopen the updated window
                             } else {
                                 JOptionPane.showMessageDialog(
-                                    null,
+                                    frame,
                                     "Errore nell'accettazione: " + acceptResult.getErrorMessage(),
                                     ERROR_WINDOW_TITLE,
                                     JOptionPane.ERROR_MESSAGE
@@ -176,9 +176,9 @@ public final class DeliverymanPage extends JFrame {
                 }
             });
 
-            final JDialog dialog = new JDialog(this, "Ordini disponibili", true);
+            final JDialog dialog = new JDialog(frame, "Ordini disponibili", true);
             dialog.setSize(DELIVERY_WINDOW_WIDTH, DELIVERY_WINDOW_HEIGHT);
-            dialog.setLocationRelativeTo(this);
+            dialog.setLocationRelativeTo(frame);
 
             final JScrollPane scrollPane = new JScrollPane(table);
             dialog.add(scrollPane);
@@ -197,7 +197,7 @@ public final class DeliverymanPage extends JFrame {
                     .toList();
             } else {
                 JOptionPane.showMessageDialog(
-                    this,
+                    frame,
                     "Errore nel recupero degli ordini accettati: " + result.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -249,7 +249,7 @@ public final class DeliverymanPage extends JFrame {
                             + "<b>Compenso:</b> $" + order.getShippingRate() + "</html>";
 
                         final int scelta = JOptionPane.showConfirmDialog(
-                            null,
+                            frame,
                             details + HTML_NEWLINE + "Segna come consegnato?",
                             "Consegna Ordine",
                             JOptionPane.YES_NO_OPTION,
@@ -260,7 +260,7 @@ public final class DeliverymanPage extends JFrame {
                             final var deliverResult = DeliveredOrder.DAO.from(conn, order, now);
                             if (deliverResult.isSuccess()) {
                                 JOptionPane.showMessageDialog(
-                                    null,
+                                    frame,
                                     "Ordine consegnato!",
                                     "Conferma",
                                     JOptionPane.INFORMATION_MESSAGE
@@ -280,9 +280,9 @@ public final class DeliverymanPage extends JFrame {
                 }
             });
 
-            final JDialog dialog = new JDialog(this, "Ordini da consegnare", true);
+            final JDialog dialog = new JDialog(frame, "Ordini da consegnare", true);
             dialog.setSize(DELIVERY_WINDOW_WIDTH, DELIVERY_WINDOW_HEIGHT);
-            dialog.setLocationRelativeTo(this);
+            dialog.setLocationRelativeTo(frame);
 
             final JScrollPane scrollPane = new JScrollPane(table);
             dialog.add(scrollPane);
@@ -296,5 +296,14 @@ public final class DeliverymanPage extends JFrame {
         button.setPreferredSize(BUTTON_DIMENSION);
         button.setFocusPainted(false);
         return button;
+    }
+
+    /**
+     * Shows or hides the Window depending on the value of parameter b.
+     * @see JFrame#setVisible(boolean)
+     * @param b if true makes the window visible, otherwise hides the window
+     */
+    public void setVisible(final boolean b) {
+        frame.setVisible(b);
     }
 }

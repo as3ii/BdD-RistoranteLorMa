@@ -27,12 +27,13 @@ import it.ristorantelorma.model.user.ClientUser;
 /**
  * Review dialog window.
  */
-public final class ReviewDialog extends JDialog {
+public final class ReviewDialog {
 
-    public static final long serialVersionUID = 811249015L; // Random
     private static final String ERROR_WINDOW_TITLE = "Errore";
     private static final int WINDOW_WIDTH = 400;
     private static final int WINDOW_HEIGHT = 300;
+
+    private final JDialog dialog;
 
     /**
      * @param parent
@@ -40,9 +41,9 @@ public final class ReviewDialog extends JDialog {
      * @param username
      */
     public ReviewDialog(final JFrame parent, final String restaurantName, final String username) {
-        super(parent, "Recensione ristorante", true);
-        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setLocationRelativeTo(parent);
+        dialog = new JDialog(parent, "Recensione ristorante", true);
+        dialog.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        dialog.setLocationRelativeTo(parent);
 
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -72,7 +73,7 @@ public final class ReviewDialog extends JDialog {
             final Result<Optional<ClientUser>> userResult = ClientUser.DAO.find(conn, username);
             if (!userResult.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    dialog,
                     "Errore nella ricerca del cliente: " + userResult.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -80,7 +81,7 @@ public final class ReviewDialog extends JDialog {
                 return;
             } else if (userResult.getValue().isEmpty()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    dialog,
                     "Il cliente " + username + " non esiste.",
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -92,7 +93,7 @@ public final class ReviewDialog extends JDialog {
             final Result<Optional<Restaurant>> restaurantResult = Restaurant.DAO.find(conn, restaurantName);
             if (!restaurantResult.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    dialog,
                     "Errore nella ricerca del ristorante: " + restaurantResult.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -100,7 +101,7 @@ public final class ReviewDialog extends JDialog {
                 return;
             } else if (restaurantResult.getValue().isEmpty()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    dialog,
                     "Il ristorante " + restaurantName + " non esiste.",
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
@@ -120,17 +121,26 @@ public final class ReviewDialog extends JDialog {
             );
             if (!reviewResult.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
+                    dialog,
                     "Errore nel inserimento della recensione: " + reviewResult.getErrorMessage(),
                     ERROR_WINDOW_TITLE,
                     JOptionPane.ERROR_MESSAGE
                 );
                 return;
             }
-            JOptionPane.showMessageDialog(this, "Recensione salvata!");
-            dispose();
+            JOptionPane.showMessageDialog(dialog, "Recensione salvata!");
+            dialog.dispose();
         });
 
-        setContentPane(panel);
+        dialog.setContentPane(panel);
+    }
+
+    /**
+     * Shows or hides the Dialog depending on the value of parameter b.
+     * @see JDialog#setVisible(boolean)
+     * @param b if true makes the dialog visible, otherwise hides the dialog
+     */
+    public void setVisible(final boolean b) {
+        dialog.setVisible(b);
     }
 }

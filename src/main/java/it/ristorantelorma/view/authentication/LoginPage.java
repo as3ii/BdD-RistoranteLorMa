@@ -7,7 +7,6 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.Serializable;
 import java.sql.Connection;
 import java.util.Optional;
 
@@ -31,9 +30,8 @@ import it.ristorantelorma.view.deliveryman.DeliverymanPage;
  * Rappresenta la pagina di login dell'applicazione.
  * Fornisce i campi per inserire username e password e i bottoni per il login.
  */
-public final class LoginPage implements Serializable {
+public final class LoginPage {
 
-    public static final long serialVersionUID = 421182962L;
     private static final Color BACKGROUND_COLOR = Color.WHITE;
     private static final Font LABEL_FONT = new Font("Arial", Font.PLAIN, 14);
     private static final Font BUTTON_FONT = new Font("Arial", Font.PLAIN, 12);
