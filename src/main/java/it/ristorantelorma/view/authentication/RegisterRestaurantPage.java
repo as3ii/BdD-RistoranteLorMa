@@ -7,7 +7,7 @@ import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.user.RestaurantUser;
 import it.ristorantelorma.model.user.Role;
 import it.ristorantelorma.model.user.User;
-import it.ristorantelorma.view.delivery.FirstPage;
+import it.ristorantelorma.view.FirstPage;
 
 import java.awt.Color;
 import java.awt.GridBagConstraints;

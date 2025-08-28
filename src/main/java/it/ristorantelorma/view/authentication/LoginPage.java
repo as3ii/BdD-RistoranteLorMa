@@ -22,8 +22,8 @@ import it.ristorantelorma.controller.PasswordManager;
 import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.user.User;
+import it.ristorantelorma.view.FirstPage;
 import it.ristorantelorma.view.customer.RestaurantsPage;
-import it.ristorantelorma.view.delivery.FirstPage;
 import it.ristorantelorma.view.deliveryman.DeliverymanPage;
 
 /**

@@ -1,4 +1,4 @@
-package it.ristorantelorma.view.delivery;
+package it.ristorantelorma.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

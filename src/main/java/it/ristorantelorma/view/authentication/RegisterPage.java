@@ -12,9 +12,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import it.ristorantelorma.view.delivery.FirstPage;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -37,6 +34,7 @@ import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.user.ClientUser;
 import it.ristorantelorma.model.user.Role;
 import it.ristorantelorma.model.user.User;
+import it.ristorantelorma.view.FirstPage;
 
 /**
  * Represent the registration page.

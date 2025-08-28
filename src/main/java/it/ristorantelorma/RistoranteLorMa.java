@@ -1,6 +1,7 @@
 package it.ristorantelorma;
 
 import it.ristorantelorma.model.DatabaseConnectionManager;
+import it.ristorantelorma.view.FirstPage;
 
 /**
  * Application entry point class.
@@ -22,7 +23,7 @@ public final class RistoranteLorMa {
             DatabaseConnectionManager.getInstance().close();
         }));
         javax.swing.SwingUtilities.invokeLater(() -> {
-            new it.ristorantelorma.view.delivery.FirstPage().show();
+            new FirstPage().show();
         });
     }
 }
