@@ -10,7 +10,7 @@ public final class Queries {
      */
     public static final String FIND_USER =
         """
-        SELECT * FROM UTENTI WHERE username = ?;
+        SELECT * FROM utenti WHERE username = ?;
         """;
 
     /**
@@ -18,7 +18,7 @@ public final class Queries {
      */
     public static final String INSERT_USER =
         """
-        INSERT INTO UTENTI
+        INSERT INTO utenti
         (nome, cognome, username, password, telefono, email,
         città, via, n_civico, credito, ruolo)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -29,7 +29,7 @@ public final class Queries {
      */
     public static final String SET_USER_CREDIT =
         """
-        UPDATE UTENTI
+        UPDATE utenti
         SET credito = ?
         WHERE username = ?;
         """;
@@ -40,7 +40,7 @@ public final class Queries {
     public static final String FIND_DELIVERYMAN_WITH_MORE_DELIVERIES =
         """
         SELECT u.*,COUNT(o.username_fattorino) AS "numero_ordini"
-        FROM UTENTI u, ORDINI o
+        FROM utenti u, ordini o
         WHERE u.username = o.username_fattorino AND ora_consegna IS NOT NULL
         GROUP BY o.username_fattorino ORDER BY numero_ordini DESC LIMIT 1;
         """;
@@ -49,7 +49,7 @@ public final class Queries {
      */
     public static final String FIND_RESTAURANT_BY_NAME =
         """
-        SELECT * FROM RISTORANTI WHERE nome_attività = ?;
+        SELECT * FROM ristoranti WHERE nome_attività = ?;
         """;
 
     /**
@@ -57,7 +57,7 @@ public final class Queries {
      */
     public static final String FIND_RESTAURANT_BY_USERNAME =
         """
-        SELECT * FROM RISTORANTI WHERE username = ?;
+        SELECT * FROM ristoranti WHERE username = ?;
         """;
 
     /**
@@ -65,7 +65,7 @@ public final class Queries {
      */
     public static final String INSERT_RESTAURANT =
         """
-        INSERT INTO RISTORANTI
+        INSERT INTO ristoranti
         (username, nome_attività, p_iva, ora_apertura, ora_chiusura)
         VALUES (?, ?, ?, ?, ?);
         """;
@@ -75,7 +75,7 @@ public final class Queries {
      */
     public static final String LIST_RESTAURANTS =
         """
-        SELECT * FROM RISTORANTI;
+        SELECT * FROM ristoranti;
         """;
 
     /**
@@ -84,7 +84,7 @@ public final class Queries {
     public static final String FIND_RESTAURANT_MOST_ORDERS =
         """
         SELECT r.*,COUNT(o.nome_attività) AS "numero_ordini"
-        FROM RISTORANTI r, ORDINI o
+        FROM ristoranti r, ordini o
         WHERE r.nome_attività = o.nome_attività
         GROUP BY o.nome_attività ORDER BY numero_ordini DESC LIMIT 1;
         """;
@@ -95,7 +95,7 @@ public final class Queries {
     public static final String FIND_RESTAURANT_MOST_NEGATIVE_REVIEWS =
         """
         SELECT ris.*,AVG(CAST(CAST(rec.voto AS CHAR) AS INT)) AS average
-        FROM RISTORANTI ris, RECENSIONI rec
+        FROM ristoranti ris, recensioni rec
         WHERE ris.nome_attività = rec.nome_attività
         GROUP BY rec.nome_attività ORDER BY average ASC LIMIT 1;
         """;
@@ -105,7 +105,7 @@ public final class Queries {
      */
     public static final String FIND_FOOD_TYPE =
         """
-        SELECT * FROM TIPO_VIVANDE WHERE nome = ?;
+        SELECT * FROM tipo_vivande WHERE nome = ?;
         """;
 
     /**
@@ -113,7 +113,7 @@ public final class Queries {
      */
     public static final String INSERT_FOOD_TYPE =
         """
-        INSERT INTO TIPO_VIVANDE
+        INSERT INTO tipo_vivande
         (nome, tipologia)
         VALUES (?, ?);
         """;
@@ -123,7 +123,7 @@ public final class Queries {
      */
     public static final String LIST_FOOD_TYPES =
         """
-        SELECT * FROM TIPO_VIVANDE;
+        SELECT * FROM tipo_vivande;
         """;
 
     /**
@@ -132,7 +132,7 @@ public final class Queries {
     public static final String FIND_FOOD_TYPE_MOST_PURCHASED =
         """
         SELECT t.*,SUM(d.quantità) AS "totale"
-        FROM TIPO_VIVANDE t, VIVANDE v, DETTAGLIO_ORDINI d
+        FROM tipo_vivande t, vivande v, dettaglio_ordini d
         WHERE t.nome = v.tipologia AND v.codice = d.codice_vivanda
         GROUP BY t.nome ORDER BY totale DESC LIMIT 1;
         """;
@@ -142,7 +142,7 @@ public final class Queries {
      */
     public static final String FIND_FOOD_BY_NAME =
         """
-        SELECT * FROM VIVANDE
+        SELECT * FROM vivande
         WHERE nome = ? AND nome_attività = ?;
         """;
 
@@ -151,7 +151,7 @@ public final class Queries {
      */
     public static final String FIND_FOOD_BY_ID =
         """
-        SELECT * FROM VIVANDE
+        SELECT * FROM vivande
         WHERE codice = ?;
         """;
 
@@ -160,7 +160,7 @@ public final class Queries {
      */
     public static final String INSERT_FOOD =
         """
-        INSERT INTO VIVANDE
+        INSERT INTO vivande
         (nome, nome_attività, prezzo, tipologia)
         VALUES (?, ?, ?, ?);
         """;
@@ -170,7 +170,7 @@ public final class Queries {
      */
     public static final String LIST_FOODS =
         """
-        SELECT * FROM VIVANDE
+        SELECT * FROM vivande
         WHERE nome_attività = ?;
         """;
 
@@ -179,7 +179,7 @@ public final class Queries {
      */
     public static final String LIST_FOODS_BY_ORDER_ID =
         """
-        SELECT * FROM DETTAGLIO_ORDINI
+        SELECT * FROM dettaglio_ordini
         WHERE codice_ordine = ?;
         """;
 
@@ -189,17 +189,17 @@ public final class Queries {
     public static final String FIND_FOOD_MOST_PURCHASED =
         """
         SELECT v.*,SUM(d.quantità) AS "quantità_totale"
-        FROM VIVANDE v, DETTAGLIO_ORDINI d
+        FROM vivande v, dettaglio_ordini d
         WHERE v.codice = d.codice_vivanda
         GROUP BY codice_vivanda ORDER BY quantità_totale DESC LIMIT 1;
         """;
 
     /**
-     * Insert a new record in DETTAGLIO_ORDINI.
+     * Insert a new record in dettaglio_ordini.
      */
     public static final String INSERT_ORDER_DETAIL =
         """
-        INSERT INTO DETTAGLIO_ORDINI
+        INSERT INTO dettaglio_ordini
         (codice_vivanda, codice_ordine, quantità)
         VALUES (?, ?, ?);
         """;
@@ -209,7 +209,7 @@ public final class Queries {
      */
     public static final String FIND_ORDER_BY_ID =
         """
-        SELECT * FROM ORDINI
+        SELECT * FROM ordini
         WHERE id = ?;
         """;
 
@@ -218,7 +218,7 @@ public final class Queries {
      */
     public static final String INSERT_ORDER =
         """
-        INSERT INTO ORDINI
+        INSERT INTO ordini
         (nome_attività, data_ora, stato, tariffa_spedizione, username_cliente)
         VALUES (?, ?, 'attesa', ?, ?);
         """;
@@ -228,7 +228,7 @@ public final class Queries {
      */
     public static final String SET_ORDER_READY =
         """
-        UPDATE ORDINI
+        UPDATE ordini
         SET stato = 'pronto'
         WHERE codice = ?;
         """;
@@ -238,7 +238,7 @@ public final class Queries {
      */
     public static final String SET_ORDER_ACCEPTED =
         """
-        UPDATE ORDINI
+        UPDATE ordini
         SET stato = 'accettato', ora_accettazione = ?, username_fattorino = ?
         WHERE codice = ?;
         """;
@@ -248,7 +248,7 @@ public final class Queries {
      */
     public static final String SET_ORDER_DELIVERED =
         """
-        UPDATE ORDINI
+        UPDATE ordini
         SET stato = 'consegnato', ora_consegna = ?
         WHERE codice = ?;
         """;
@@ -258,7 +258,7 @@ public final class Queries {
      */
     public static final String SET_ORDER_CANCELLED =
         """
-        UPDATE ORDINI
+        UPDATE ordini
         SET stato = 'annullato'
         WHERE codice = ?;
         """;
@@ -268,7 +268,7 @@ public final class Queries {
      */
     public static final String LIST_ORDERS_BY_STATE =
         """
-        SELECT * FROM ORDINI
+        SELECT * FROM ordini
         WHERE stato = ?;
         """;
 
@@ -277,7 +277,7 @@ public final class Queries {
      */
     public static final String LIST_REVIEWS_OF_RESTAURANT =
         """
-        SELECT * FROM RECENSIONI
+        SELECT * FROM recensioni
         WHERE nome_attività = ?;
         """;
 
@@ -286,7 +286,7 @@ public final class Queries {
      */
     public static final String INSERT_REVIEW =
         """
-        INSERT INTO RECENSIONI
+        INSERT INTO recensioni
         (nome_attività, data, voto, commento, username)
         VALUES (?, ?, ?, ?, ?);
         """;
@@ -296,7 +296,7 @@ public final class Queries {
      */
     public static final String DELETE_REVIEW =
         """
-        DELETE FROM RECENSIONI
+        DELETE FROM recensioni
         WHERE codice = ?;
         """;
 
