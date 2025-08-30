@@ -392,19 +392,19 @@ public class RegisterPage {
             );
             return;
         }
-        if (!isDeliveryMan) {
-            final ClientUser user = (ClientUser) resInsert.getValue();
-            final Result<ClientUser> resCredit = ClientUser.DAO.updateCredit(conn, user, credit);
-            if (!resCredit.isSuccess()) {
-                JOptionPane.showMessageDialog(
-                    mainFrame,
-                    "Registrazione fallita.\n" + resCredit.getErrorMessage(),
-                    ERROR_WINDOW_TITLE,
-                    JOptionPane.ERROR_MESSAGE
-                );
-                return;
+            if (role == Role.CLIENT) {
+                final ClientUser user = (ClientUser) resInsert.getValue();
+                final Result<ClientUser> resCredit = ClientUser.DAO.updateCredit(conn, user, credit);
+                if (!resCredit.isSuccess()) {
+                    JOptionPane.showMessageDialog(
+                        mainFrame,
+                        "Registrazione fallita.\n" + resCredit.getErrorMessage(),
+                        ERROR_WINDOW_TITLE,
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
             }
-        }
         JOptionPane.showMessageDialog(
             mainFrame,
             "Registrazione avvenuta con successo!",

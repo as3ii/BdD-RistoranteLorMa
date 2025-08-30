@@ -242,9 +242,11 @@ public abstract class User {
                 return Result.failure(errorMessage);
             }
 
-            BigDecimal credit = null;
+            final BigDecimal credit;
             if (role == Role.CLIENT) {
                 credit = DEFAULT_CREDIT;
+            } else {
+                credit = BigDecimal.ZERO;
             }
             try (
                 PreparedStatement statement = DBHelper.prepare(
