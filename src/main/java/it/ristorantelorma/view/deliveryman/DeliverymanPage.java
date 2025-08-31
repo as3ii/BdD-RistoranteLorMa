@@ -259,6 +259,22 @@ public final class DeliverymanPage {
                             final Timestamp now = new Timestamp(System.currentTimeMillis());
                             final var deliverResult = DeliveredOrder.DAO.from(conn, order, now);
                             if (deliverResult.isSuccess()) {
+                                // Accredita il compenso al fattorino
+                                try (java.sql.PreparedStatement stmt = conn.prepareStatement(
+                                        "UPDATE utenti SET credito = credito + ? WHERE username = ?;")
+                                ) {
+                                    stmt.setBigDecimal(1, order.getShippingRate());
+                                    stmt.setString(2, order.getDeliveryman().getUsername());
+                                    stmt.executeUpdate();
+                                } catch (java.sql.SQLException ex) {
+                                    JOptionPane.showMessageDialog(
+                                        frame,
+                                        "Errore nell'accredito del compenso al fattorino: " + ex.getMessage(),
+                                        ERROR_WINDOW_TITLE,
+                                        JOptionPane.ERROR_MESSAGE
+                                    );
+                                    return;
+                                }
                                 JOptionPane.showMessageDialog(
                                     frame,
                                     "Ordine consegnato!",

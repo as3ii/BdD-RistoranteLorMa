@@ -189,9 +189,22 @@ public final class ResMenu {
             }
             balance = balance.subtract(total);
 
-            final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-            // Da gestire correttamente il costo di spedizione
+            // Spese di spedizione gestite come valore fisso
             final BigDecimal shippingRate = new BigDecimal("2.5");
+            // Sottrae il shippingRate dal credito dell'utente (tabella utenti)
+            try (java.sql.PreparedStatement stmt = conn.prepareStatement(
+                    "UPDATE utenti SET credito = credito - ? WHERE username = ?;"
+                )) {
+                stmt.setBigDecimal(1, shippingRate);
+                stmt.setString(2, restaurant.getUser().getUsername());
+                stmt.executeUpdate();
+            } catch (java.sql.SQLException ex) {
+                JOptionPane.showMessageDialog(frame, "Errore nell'aggiornamento del credito ristorante: "
+                                + ex.getMessage(), ERROR_WINDOW_TITLE, JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
             final Result<WaitingOrder> resNewOrder = Order.DAO.insert(
                 conn, restaurant, now, shippingRate, resClient.getValue(), orderedFood
             );
@@ -204,7 +217,7 @@ public final class ResMenu {
                 );
                 return;
             }
-            // Da implementare correttamente lo switch
+            // Conversione dell'ordine in stato pronto
             final Result<ReadyOrder> resOrder = ReadyOrder.DAO.from(conn, resNewOrder.getValue());
             if (!resOrder.isSuccess()) {
                 JOptionPane.showMessageDialog(
