@@ -26,6 +26,8 @@ import it.ristorantelorma.view.FirstPage;
 import it.ristorantelorma.view.admin.AdminDashboard;
 import it.ristorantelorma.view.customer.RestaurantsPage;
 import it.ristorantelorma.view.deliveryman.DeliverymanPage;
+import it.ristorantelorma.view.restaurant.RestaurantMenuPage;
+import it.ristorantelorma.model.user.RestaurantUser;
 
 
 /**
@@ -194,12 +196,15 @@ public final class LoginPage {
                         case DELIVERYMAN -> {
                             new DeliverymanPage(conn, username).setVisible(true);
                         }
+                        case RESTAURANT -> {
+                            new RestaurantMenuPage((RestaurantUser) user).setVisible(true);
+                        }
                         default -> {
                             final RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username);
                             restaurantsPage.setVisible(true);
                         }
                     }
-});
+                });
             } else {
                 JOptionPane.showMessageDialog(this.mainFrame,
                     "Username o password errati!",
