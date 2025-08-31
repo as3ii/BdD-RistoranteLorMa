@@ -2,6 +2,7 @@ package it.ristorantelorma.model;
 
 import it.ristorantelorma.controller.SimpleLogger;
 import it.ristorantelorma.model.user.RestaurantUser;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -496,6 +497,114 @@ public final class Restaurant {
             } catch (SQLException e) {
                 final String errorMessage =
                     "Failed getting restaurant with the most negative reviews";
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Restituisce tutte le vivande collegate al ristorante.
+         *
+         * @param connection la connessione al database
+         * @param restaurant il ristorante di cui recuperare le vivande
+         * @return un Result contenente la collezione di vivande oppure un messaggio di errore
+         */
+        public static Result<Collection<Food>> listFoods(
+            final Connection connection,
+            final Restaurant restaurant
+        ) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    "SELECT * FROM vivande WHERE nome_attività = ?;",
+                    restaurant.getRestaurantName()
+                );
+                ResultSet result = statement.executeQuery();
+            ) {
+                    final Collection<Food> foods = new HashSet<>();
+                while (result.next()) {
+                        final Result<Food> foodRes = Food.DAO.fromFoodResultSet(connection, result, restaurant);
+                    if (foodRes.isSuccess()) {
+                        foods.add(foodRes.getValue());
+                    } else {
+                        return Result.failure(foodRes.getErrorMessage());
+                    }
+                }
+                return Result.success(foods);
+            } catch (SQLException e) {
+                final String errorMessage = "Errore nel caricamento delle vivande";
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Aggiunge una nuova vivanda al ristorante.
+         *
+         * @param connection la connessione al database
+         * @param restaurant il ristorante a cui aggiungere la vivanda
+         * @param name il nome della vivanda
+         * @param price il prezzo della vivanda
+         * @param type la tipologia della vivanda
+         * @return un Result contenente la vivanda aggiunta oppure un messaggio di errore
+         */
+        public static Result<Food> addFood(
+            final Connection connection,
+            final Restaurant restaurant,
+            final String name,
+            final BigDecimal price,
+            final FoodType type
+        ) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    "INSERT INTO vivande (nome, nome_attività, prezzo, tipologia) VALUES (?, ?, ?, ?);",
+                    name,
+                    restaurant.getRestaurantName(),
+                    price,
+                    type.getName()
+                );
+            ) {
+                    final int rows = statement.executeUpdate();
+                if (rows < 1) {
+                    return Result.failure("Vivanda non inserita.");
+                }
+                // Recupera la vivanda appena inserita
+                    final Result<Optional<Food>> foodRes = Food.DAO.find(connection, name, restaurant);
+                if (foodRes.isSuccess() && foodRes.getValue().isPresent()) {
+                    return Result.success(foodRes.getValue().get());
+                } else {
+                    return Result.failure("Vivanda inserita ma non trovata.");
+                }
+            } catch (SQLException e) {
+                final String errorMessage = "Errore nell'inserimento vivanda";
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Elimina una vivanda tramite id.
+         *
+         * @param connection la connessione al database
+         * @param foodId l'id della vivanda da eliminare
+         * @return un Result che indica se l'eliminazione è avvenuta con successo oppure un messaggio di errore
+         */
+        public static Result<Boolean> deleteFood(
+            final Connection connection,
+            final int foodId
+        ) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    "DELETE FROM vivande WHERE codice = ?;",
+                    foodId
+                );
+            ) {
+                    final int rows = statement.executeUpdate();
+                return Result.success(rows > 0);
+            } catch (SQLException e) {
+                final String errorMessage = "Errore nell'eliminazione vivanda";
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 return Result.failure(errorMessage);
             }

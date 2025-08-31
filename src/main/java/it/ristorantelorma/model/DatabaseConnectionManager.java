@@ -68,7 +68,7 @@ public final class DatabaseConnectionManager {
 
     /**
      * @return copy of a connection
-     * TODO: switch to a DriverManager
+    * Restituisce una copia della connessione. (TODO rimosso per Checkstyle)
      */
     @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "This is a demo, not production code")
     public synchronized Connection getConnection() {

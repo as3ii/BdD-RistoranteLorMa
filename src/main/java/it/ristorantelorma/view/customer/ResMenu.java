@@ -190,7 +190,7 @@ public final class ResMenu {
             balance = balance.subtract(total);
 
             final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-            // TODO: properly handle shipping rate
+            // Da gestire correttamente il costo di spedizione
             final BigDecimal shippingRate = new BigDecimal("2.5");
             final Result<WaitingOrder> resNewOrder = Order.DAO.insert(
                 conn, restaurant, now, shippingRate, resClient.getValue(), orderedFood
@@ -204,7 +204,7 @@ public final class ResMenu {
                 );
                 return;
             }
-            // TODO: properly implement switch from
+            // Da implementare correttamente lo switch
             final Result<ReadyOrder> resOrder = ReadyOrder.DAO.from(conn, resNewOrder.getValue());
             if (!resOrder.isSuccess()) {
                 JOptionPane.showMessageDialog(

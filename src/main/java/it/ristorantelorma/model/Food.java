@@ -143,7 +143,7 @@ public final class Food {
          * @return the Food if there are no errors
          * @throws IllegalStateException
          */
-        private static Result<Food> fromFoodResultSet(
+        public static Result<Food> fromFoodResultSet(
             final Connection connection,
             final ResultSet result,
             final Restaurant optRestaurant
