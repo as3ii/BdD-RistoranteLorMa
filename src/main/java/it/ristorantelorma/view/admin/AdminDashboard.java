@@ -24,11 +24,15 @@ import java.sql.SQLException;
 
 import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Queries;
+import java.sql.ResultSetMetaData;
 
 /**
  * Finestra per amministratore, visualizzata dopo login con ruolo "admin".
  */
 public final class AdminDashboard {
+    private static final String NOME = "nome";
+    private static final String ERRORE_SQL = "Errore SQL: ";
+    private static final String MOST_POPULAR_CUISINE_TYPE = "Most popular cuisine type";
     private static final String TOP_DISH_LABEL = "Top dish";
     private static final String BEST_RESTAURANT_LABEL = "Best restaurant";
     private static final String BEST_DELIVERER_LABEL = "Best deliverer";
@@ -108,44 +112,108 @@ public final class AdminDashboard {
             }
         });
         bottomPanel.add(topDishButton);
-        bottomPanel.add(new JButton("Most popular cuisine type"));
-        bottomPanel.add(new JButton("5 most chosen restaurants"));
-        // Bottone Best restaurant con ActionListener
-    final JButton bestRestaurantButton = new JButton(BEST_RESTAURANT_LABEL);
-        bestRestaurantButton.addActionListener(e -> {
+    final JButton mostPopularCuisineButton = new JButton(MOST_POPULAR_CUISINE_TYPE);
+        mostPopularCuisineButton.addActionListener(e -> {
+                try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+                      PreparedStatement stmt = conn.prepareStatement(
+                          "SELECT t.*, SUM(d.quantità) AS totale "
+                          + "FROM TIPO_VIVANDE t, VIVANDE v, DETTAGLIO_ORDINI d "
+                          + "WHERE t.nome = v.tipologia AND v.codice = d.codice_vivanda "
+                          + "GROUP BY t.nome ORDER BY totale DESC LIMIT 1;");
+                      ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    final String nomeTipologia = rs.getString(NOME);
+                    final int totale = rs.getInt("totale");
+                    final ResultSetMetaData meta = rs.getMetaData();
+                    final StringBuilder info = new StringBuilder(128);
+                    info.append("Tipologia di cucina più acquistata: ").append(nomeTipologia)
+                        .append("\nTotale piatti acquistati: ").append(totale).append('\n');
+                    for (int i = 1; i <= meta.getColumnCount(); i++) {
+                        final String colName = meta.getColumnName(i);
+                        if (!NOME.equalsIgnoreCase(colName) && !"totale".equalsIgnoreCase(colName)) {
+                            info.append(colName).append(": ").append(rs.getString(colName)).append('\n');
+                        }
+                    }
+                    JOptionPane.showMessageDialog(frame, info.toString(), MOST_POPULAR_CUISINE_TYPE,
+                                                    JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Nessuna tipologia trovata.", MOST_POPULAR_CUISINE_TYPE,
+                                                    JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(frame, ERRORE_SQL + ex.getMessage(), MOST_POPULAR_CUISINE_TYPE,
+                                                JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        bottomPanel.add(mostPopularCuisineButton);
+    final String worstRestaurantsLabel = "Worst restaurants";
+    final JButton worstRestaurantsButton = new JButton(worstRestaurantsLabel);
+        worstRestaurantsButton.addActionListener(e -> {
             try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
                  PreparedStatement stmt = conn.prepareStatement(
-                        "SELECT r.nome_attività, COUNT(o.nome_attività) AS numero_ordini "
-                        + "FROM RISTORANTI r, ORDINI o "
-                        + "WHERE r.nome_attività = o.nome_attività "
-                        + "GROUP BY o.nome_attività ORDER BY numero_ordini DESC LIMIT 1;");
+                     "SELECT ris.*, AVG(CAST(rec.voto AS UNSIGNED)) AS average "
+                     + "FROM RISTORANTI ris, RECENSIONI rec "
+                     + "WHERE ris.nome_attività = rec.nome_attività "
+                     + "GROUP BY rec.nome_attività ORDER BY average ASC LIMIT 1;");
                  ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     final String nome = rs.getString("nome_attività");
-                    final int numeroOrdini = rs.getInt("numero_ordini");
-                    final String info = "Ristorante con più ordini:\n"
-                            + "Nome: " + nome + "\n"
-                            + "Numero ordini: " + numeroOrdini;
+                    final double average = rs.getDouble("average");
+                    final StringBuilder info = new StringBuilder(128);
+                    info.append("Ristorante con più recensioni negative:\nNome: ")
+                        .append(nome)
+                        .append("\nMedia voti: ")
+                        .append(average)
+                        .append('\n');
+                    // Mostra altre info se necessario
+                    JOptionPane.showMessageDialog(frame, info.toString(), worstRestaurantsLabel,
+                            JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Nessun ristorante trovato.", worstRestaurantsLabel,
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(frame, ERRORE_SQL + ex.getMessage(), worstRestaurantsLabel,
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        bottomPanel.add(worstRestaurantsButton);
+        // Bottone Best restaurant con ActionListener
+    final JButton bestRestaurantButton = new JButton(BEST_RESTAURANT_LABEL);
+        bestRestaurantButton.addActionListener(e -> {
+         try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+           PreparedStatement stmt = conn.prepareStatement(
+               "SELECT r.nome_attività, COUNT(o.nome_attività) AS numero_ordini "
+               + "FROM RISTORANTI r, ORDINI o "
+               + "WHERE r.nome_attività = o.nome_attività "
+               + "GROUP BY o.nome_attività ORDER BY numero_ordini DESC LIMIT 1;");
+           ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+            final String nome = rs.getString("nome_attività"); // nome_attività non è duplicato, lasciato invariato
+            final int numeroOrdini = rs.getInt("numero_ordini");
+            final String info = "Ristorante con più ordini:\n"
+                + "Nome: " + nome + "\n"
+                + "Numero ordini: " + numeroOrdini;
                     JOptionPane.showMessageDialog(frame, info, BEST_RESTAURANT_LABEL, JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(frame, "Nessun ristorante trovato.", BEST_RESTAURANT_LABEL,
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Errore SQL: " + ex.getMessage(), BEST_RESTAURANT_LABEL,
-                        JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, ERRORE_SQL + ex.getMessage(), BEST_RESTAURANT_LABEL,
+            JOptionPane.ERROR_MESSAGE);
             }
         });
         bottomPanel.add(bestRestaurantButton);
         final JButton bestDelivererButton = new JButton(BEST_DELIVERER_LABEL);
         bestDelivererButton.addActionListener(e -> {
-            try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT u.*, COUNT(o.username_fattorino) AS numero_ordini "
-                    + "FROM UTENTI u, ORDINI o "
-                    + "WHERE u.username = o.username_fattorino AND ora_consegna IS NOT NULL "
-                    + "GROUP BY o.username_fattorino ORDER BY numero_ordini DESC LIMIT 1;");
-                 ResultSet rs = stmt.executeQuery()) {
+                try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+                      PreparedStatement stmt = conn.prepareStatement(
+                          "SELECT u.*, COUNT(o.username_fattorino) AS numero_ordini "
+                          + "FROM UTENTI u, ORDINI o "
+                          + "WHERE u.username = o.username_fattorino AND ora_consegna IS NOT NULL "
+                          + "GROUP BY o.username_fattorino ORDER BY numero_ordini DESC LIMIT 1;");
+                      ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     final String info = "Miglior fattorino:\n"
                         + "Username: " + rs.getString("username") + "\n"
@@ -158,7 +226,7 @@ public final class AdminDashboard {
                                                     JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Errore SQL: " + ex.getMessage(), BEST_DELIVERER_LABEL,
+                JOptionPane.showMessageDialog(frame, ERRORE_SQL + ex.getMessage(), BEST_DELIVERER_LABEL,
                                                 JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -189,8 +257,8 @@ public final class AdminDashboard {
                 restaurantNames.add(name);
                 restaurantComboBox.addItem(name);
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(frame, "Errore SQL nel caricamento dei ristoranti: " + ex.getMessage());
+        } catch (final SQLException ex) {
+            JOptionPane.showMessageDialog(frame, ERRORE_SQL + "nel caricamento dei ristoranti: " + ex.getMessage());
         }
     }
 
@@ -199,9 +267,9 @@ public final class AdminDashboard {
      */
     private static class ReviewsWindow {
 
-        private final JFrame frame;
-        private final JTable table;
-        private final DefaultTableModel tableModel;
+    private final JFrame frame;
+    private final JTable table;
+    private final DefaultTableModel tableModel;
 
         ReviewsWindow(final String restaurantName) {
             frame = new JFrame("Recensioni di " + restaurantName);
@@ -250,7 +318,7 @@ public final class AdminDashboard {
                     }
                 }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Errore SQL nel caricamento delle recensioni: " + ex.getMessage());
+                JOptionPane.showMessageDialog(frame, ERRORE_SQL + "nel caricamento delle recensioni: " + ex.getMessage());
             }
         }
 
@@ -281,7 +349,7 @@ public final class AdminDashboard {
                     JOptionPane.showMessageDialog(frame, "Errore: recensione non trovata.");
                 }
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Errore SQL nell'eliminazione: " + ex.getMessage());
+                JOptionPane.showMessageDialog(frame, ERRORE_SQL + "nell'eliminazione: " + ex.getMessage());
             }
         }
 
