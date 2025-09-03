@@ -29,6 +29,9 @@ import it.ristorantelorma.model.Queries;
  * Finestra per amministratore, visualizzata dopo login con ruolo "admin".
  */
 public final class AdminDashboard {
+    private static final String TOP_DISH_LABEL = "Top dish";
+    private static final String BEST_RESTAURANT_LABEL = "Best restaurant";
+    private static final String BEST_DELIVERER_LABEL = "Best deliverer";
     private static final int DASHBOARD_WIDTH = 800;
     private static final int DASHBOARD_HEIGHT = 600;
     private static final int REVIEWS_WIDTH = 600;
@@ -79,11 +82,87 @@ public final class AdminDashboard {
 
         // Bottom panel con i bottoni
         final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        bottomPanel.add(new JButton("Top dish"));
+    final JButton topDishButton = new JButton(TOP_DISH_LABEL);
+        topDishButton.addActionListener(e -> {
+            try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT v.nome, SUM(d.quantità) AS quantità_totale "
+                        + "FROM VIVANDE v, DETTAGLIO_ORDINI d "
+                        + "WHERE v.codice = d.codice_vivanda "
+                        + "GROUP BY codice_vivanda, v.nome "
+                        + "ORDER BY quantità_totale DESC LIMIT 1;");
+                 ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    final String nomeVivanda = rs.getString("nome");
+                    final int quantitaTotale = rs.getInt("quantità_totale");
+                    JOptionPane.showMessageDialog(frame,
+                        "Vivanda più acquistata: " + nomeVivanda + "\nQuantità totale: " + quantitaTotale,
+                        TOP_DISH_LABEL, JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(frame,
+                        "Nessuna vivanda trovata.", TOP_DISH_LABEL, JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(frame,
+                    "Errore SQL: " + ex.getMessage(), TOP_DISH_LABEL, JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        bottomPanel.add(topDishButton);
         bottomPanel.add(new JButton("Most popular cuisine type"));
         bottomPanel.add(new JButton("5 most chosen restaurants"));
-        bottomPanel.add(new JButton("Worst restaurant"));
-        bottomPanel.add(new JButton("Best deliverer"));
+        // Bottone Best restaurant con ActionListener
+    final JButton bestRestaurantButton = new JButton(BEST_RESTAURANT_LABEL);
+        bestRestaurantButton.addActionListener(e -> {
+            try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT r.nome_attività, COUNT(o.nome_attività) AS numero_ordini "
+                        + "FROM RISTORANTI r, ORDINI o "
+                        + "WHERE r.nome_attività = o.nome_attività "
+                        + "GROUP BY o.nome_attività ORDER BY numero_ordini DESC LIMIT 1;");
+                 ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    final String nome = rs.getString("nome_attività");
+                    final int numeroOrdini = rs.getInt("numero_ordini");
+                    final String info = "Ristorante con più ordini:\n"
+                            + "Nome: " + nome + "\n"
+                            + "Numero ordini: " + numeroOrdini;
+                    JOptionPane.showMessageDialog(frame, info, BEST_RESTAURANT_LABEL, JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Nessun ristorante trovato.", BEST_RESTAURANT_LABEL,
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(frame, "Errore SQL: " + ex.getMessage(), BEST_RESTAURANT_LABEL,
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        bottomPanel.add(bestRestaurantButton);
+        final JButton bestDelivererButton = new JButton(BEST_DELIVERER_LABEL);
+        bestDelivererButton.addActionListener(e -> {
+            try (Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT u.*, COUNT(o.username_fattorino) AS numero_ordini "
+                    + "FROM UTENTI u, ORDINI o "
+                    + "WHERE u.username = o.username_fattorino AND ora_consegna IS NOT NULL "
+                    + "GROUP BY o.username_fattorino ORDER BY numero_ordini DESC LIMIT 1;");
+                 ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    final String info = "Miglior fattorino:\n"
+                        + "Username: " + rs.getString("username") + "\n"
+                        + "Nome: " + rs.getString("nome") + "\n"
+                        + "Cognome: " + rs.getString("cognome") + "\n"
+                        + "Numero ordini consegnati: " + rs.getInt("numero_ordini");
+                    JOptionPane.showMessageDialog(frame, info, BEST_DELIVERER_LABEL, JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Nessun fattorino trovato.", BEST_DELIVERER_LABEL,
+                                                    JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(frame, "Errore SQL: " + ex.getMessage(), BEST_DELIVERER_LABEL,
+                                                JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        bottomPanel.add(bestDelivererButton);
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         // Carica i nomi dei ristoranti dal database
