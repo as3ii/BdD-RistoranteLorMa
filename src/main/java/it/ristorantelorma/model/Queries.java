@@ -101,6 +101,16 @@ public final class Queries {
         """;
 
     /**
+     * Update opening and closing time.
+     */
+    public static final String UPDATE_RESTAURANT =
+        """
+        UPDATE ristoranti
+        SET ora_apertura = ?, ora_chiusura = ?
+        WHERE nome_attività = ?;
+        """;
+
+    /**
      * Find a FoodType by its name.
      */
     public static final String FIND_FOOD_TYPE =

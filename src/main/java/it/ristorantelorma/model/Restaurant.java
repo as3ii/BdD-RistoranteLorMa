@@ -500,5 +500,53 @@ public final class Restaurant {
                 return Result.failure(errorMessage);
             }
         }
+
+        /**
+         * Update the given restaurant on the database, return the new Restaurant.
+         * @param connection
+         * @param restaurant
+         * @param openingTime
+         * @param closingTime
+         * @return the new Restaurant
+         */
+        public static Result<Restaurant> updateTime(
+            final Connection connection,
+            final Restaurant restaurant,
+            final Timestamp openingTime,
+            final Timestamp closingTime
+        ) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    Queries.UPDATE_RESTAURANT,
+                    openingTime,
+                    closingTime,
+                    restaurant.getRestaurantName()
+                );
+            ) {
+                final int rows = statement.executeUpdate();
+                if (rows < 1) {
+                    final String errorMessage =
+                        "Failed restaurant update, no rows changed";
+                    LOGGER.log(Level.SEVERE, errorMessage);
+                    return Result.failure(errorMessage);
+                } else {
+                    return Result.success(
+                        new Restaurant(
+                            restaurant.getUser(),
+                            restaurant.getRestaurantName(),
+                            restaurant.getVatNumber(),
+                            openingTime,
+                            closingTime
+                        )
+                    );
+                }
+            } catch (SQLException e) {
+                final String errorMessage =
+                    "Failed updating restaurant's opening and closing time";
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
     }
 }
