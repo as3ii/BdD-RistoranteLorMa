@@ -1,17 +1,10 @@
 package it.ristorantelorma.model.user;
 
-import it.ristorantelorma.controller.SimpleLogger;
-import it.ristorantelorma.model.DBHelper;
-import it.ristorantelorma.model.Queries;
 import it.ristorantelorma.model.Result;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represent an entry in the USERS table of the database with role = Role.CLIENT.
@@ -105,9 +98,6 @@ public final class ClientUser extends User {
      */
     public static final class DAO {
 
-        private static final String CLASS_NAME = ClientUser.class.getName();
-        private static final Logger LOGGER = SimpleLogger.getLogger(CLASS_NAME);
-
         private DAO() {
             throw new UnsupportedOperationException(
                 "Utility class and cannot be instantiated"
@@ -161,30 +151,12 @@ public final class ClientUser extends User {
             final BigDecimal credit
         ) {
             Objects.requireNonNull(credit); // Avoid setting the field to null in the DB
-            try (
-                PreparedStatement statement = DBHelper.prepare(
-                    connection,
-                    Queries.SET_USER_CREDIT,
-                    credit,
-                    user.getUsername()
-                );
-            ) {
-                final int rows = statement.executeUpdate();
-                if (rows < 1) {
-                    final String errorMessage =
-                        "Failed user's credit update, no rows changed";
-                    LOGGER.log(Level.SEVERE, errorMessage);
-                    return Result.failure(errorMessage);
-                } else {
-                    user.setCredit(credit);
-                    return Result.success(user);
-                }
-            } catch (SQLException e) {
-                final String errorMessage =
-                    "Failed updating user's credit, username: "
-                    + user.getUsername();
-                LOGGER.log(Level.SEVERE, errorMessage, e);
-                return Result.failure(errorMessage);
+            final Result<?> result = User.DAO.updateCredit(connection, user, credit);
+            if (result.isSuccess()) {
+                user.setCredit(credit);
+                return Result.success(user);
+            } else {
+                return Result.failure(result.getErrorMessage());
             }
         }
     }

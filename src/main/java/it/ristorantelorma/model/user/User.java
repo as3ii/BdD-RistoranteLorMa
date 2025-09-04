@@ -311,7 +311,8 @@ public abstract class User {
                                 email,
                                 city,
                                 street,
-                                houseNumber
+                                houseNumber,
+                                credit
                             );
                             break;
                         case RESTAURANT:
@@ -346,6 +347,7 @@ public abstract class User {
          * @param username
          * @return Optional.of(User) if it was found, Optional.empty() if no User was found, error message otherwise
          * @throws IllegalArgumentException if an invalid role enum is returned from the query
+         * @throws IllegalStateException if client or deliveryman have credit = null
          */
         public static Result<Optional<User>> find(
             final Connection connection,
@@ -409,6 +411,11 @@ public abstract class User {
                             );
                             break;
                         case DELIVERYMAN:
+                            if (credit.isEmpty()) {
+                                throw new IllegalStateException(
+                                    "Role cannot be 'deliveryman' with empty credit"
+                                );
+                            }
                             newUser = new DeliverymanUser(
                                 name,
                                 surname,
@@ -418,7 +425,8 @@ public abstract class User {
                                 email,
                                 city,
                                 street,
-                                houseNumber
+                                houseNumber,
+                                credit.get()
                             );
                             break;
                         case RESTAURANT:
@@ -444,6 +452,51 @@ public abstract class User {
             } catch (SQLException e) {
                 final String errorMessage =
                     "Failed research of User: " + username;
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Set the credit for the given ClientUser or DeliverymanUser.
+         * @param connection
+         * @param user
+         * @param credit
+         * @return Success (empty) if the update succede, error otherwise
+         * @throws IllegalArgumentException if the given user is not a client or deliveryman
+         */
+        static Result<?> updateCredit(
+            final Connection connection,
+            final User user,
+            final BigDecimal credit
+        ) {
+            Objects.requireNonNull(credit); // Avoid setting the field to null in the DB
+            if (!(user instanceof ClientUser || user instanceof DeliverymanUser)) {
+                throw new IllegalArgumentException(
+                    "The user is not a ClientUser or a DeliverymanUser"
+                );
+            }
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    Queries.SET_USER_CREDIT,
+                    credit,
+                    user.getUsername()
+                );
+            ) {
+                final int rows = statement.executeUpdate();
+                if (rows < 1) {
+                    final String errorMessage =
+                        "Failed user's credit update, no rows changed";
+                    LOGGER.log(Level.SEVERE, errorMessage);
+                    return Result.failure(errorMessage);
+                } else {
+                    return Result.success(new Object()); // Return dummy value
+                }
+            } catch (SQLException e) {
+                final String errorMessage =
+                    "Failed updating user's credit, username: "
+                    + user.getUsername();
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 return Result.failure(errorMessage);
             }

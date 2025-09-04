@@ -4,12 +4,14 @@ import it.ristorantelorma.controller.SimpleLogger;
 import it.ristorantelorma.model.DBHelper;
 import it.ristorantelorma.model.Queries;
 import it.ristorantelorma.model.Result;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +20,8 @@ import java.util.logging.Logger;
  * Represent an entry in the USERS table of the database with role = Role.DELIVERYMAN.
  */
 public final class DeliverymanUser extends User {
+
+    private BigDecimal credit;
 
     /**
      * @param name          the first name of the User
@@ -29,6 +33,7 @@ public final class DeliverymanUser extends User {
      * @param city
      * @param street
      * @param houseNumber
+     * @param credit
      */
     DeliverymanUser(
         final String name,
@@ -39,7 +44,8 @@ public final class DeliverymanUser extends User {
         final String email,
         final String city,
         final String street,
-        final String houseNumber
+        final String houseNumber,
+        final BigDecimal credit
     ) {
         super(
             name,
@@ -52,12 +58,14 @@ public final class DeliverymanUser extends User {
             street,
             houseNumber
         );
+        this.credit = credit;
     }
 
     /**
      * @param user       the user MUST be an instance of DeliverymanUser
+     * @param credit
      */
-    private DeliverymanUser(final User user) {
+    private DeliverymanUser(final User user, final BigDecimal credit) {
         super(
             user.getName(),
             user.getSurname(),
@@ -69,6 +77,22 @@ public final class DeliverymanUser extends User {
             user.getStreet(),
             user.getHouseNumber()
         );
+        this.credit = credit;
+    }
+
+    /**
+     * @return the deliveryman balance
+     */
+    public BigDecimal getCredit() {
+        return credit;
+    }
+
+    /**
+     * Set deliveryman's credit. This MUST remain private.
+     * @param newCredit
+     */
+    private void setCredit(final BigDecimal newCredit) {
+        this.credit = newCredit;
     }
 
     /**
@@ -120,7 +144,11 @@ public final class DeliverymanUser extends User {
                 return Result.failure("The searched user is not a deliveryman");
             }
 
-            return Result.success(Optional.of(new DeliverymanUser(user)));
+            return Result.success(
+                Optional.of(
+                    new DeliverymanUser(user, ((DeliverymanUser) user).getCredit())
+                )
+            );
         }
 
         /**
@@ -157,6 +185,7 @@ public final class DeliverymanUser extends User {
                     final String city = result.getString("città");
                     final String street = result.getString("via");
                     final String houseNumber = result.getString("n_civico");
+                    final BigDecimal credit = result.getBigDecimal("credito");
                     final int count = result.getInt("numero_ordini");
                     return Result.success(
                         new SimpleImmutableEntry<>(
@@ -169,7 +198,8 @@ public final class DeliverymanUser extends User {
                                 email,
                                 city,
                                 street,
-                                houseNumber
+                                houseNumber,
+                                credit
                             ),
                             count
                         )
@@ -182,6 +212,28 @@ public final class DeliverymanUser extends User {
                     "Failed getting the deliveryman with more deliveries";
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Set the credit for the given DeliverymanUser.
+         * @param connection
+         * @param user
+         * @param credit
+         * @return the updated DeliverymanUser
+         */
+        public static Result<DeliverymanUser> updateCredit(
+            final Connection connection,
+            final DeliverymanUser user,
+            final BigDecimal credit
+        ) {
+            Objects.requireNonNull(credit); // Avoid setting the field to null in the DB
+            final Result<?> result = User.DAO.updateCredit(connection, user, credit);
+            if (result.isSuccess()) {
+                user.setCredit(credit);
+                return Result.success(user);
+            } else {
+                return Result.failure(result.getErrorMessage());
             }
         }
     }

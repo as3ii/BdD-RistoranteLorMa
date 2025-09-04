@@ -160,7 +160,7 @@ public final class ResMenu {
             restaurantsPage.setVisible(true);
         });
         sendOrderButton.addActionListener(e -> {
-            final BigDecimal total;
+            BigDecimal total;
             final Map<Food, Integer> orderedFood = new HashMap<>();
             for (int i = 0; i < quantitySpinners.length; i++) {
                 final int qty = (Integer) quantitySpinners[i].getValue();
@@ -173,6 +173,9 @@ public final class ResMenu {
                     .stream()
                     .map(el -> el.getKey().getPrice().multiply(new BigDecimal(el.getValue())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // TODO: properly handle shipping rate
+            final BigDecimal shippingRate = new BigDecimal("2.5");
+            total = total.add(shippingRate);
             if (total.compareTo(balance) > 0) {
                 JOptionPane.showMessageDialog(frame, "Saldo insufficiente!");
                 return;
@@ -190,8 +193,6 @@ public final class ResMenu {
             balance = balance.subtract(total);
 
             final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-            // TODO: properly handle shipping rate
-            final BigDecimal shippingRate = new BigDecimal("2.5");
             final Result<WaitingOrder> resNewOrder = Order.DAO.insert(
                 conn, restaurant, now, shippingRate, resClient.getValue(), orderedFood
             );

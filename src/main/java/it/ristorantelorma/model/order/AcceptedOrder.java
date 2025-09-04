@@ -35,6 +35,10 @@ public class AcceptedOrder extends ReadyOrder {
      * @param acceptanceTime
      * @param deliveryman
      */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The deliveryman's credit can be mutated without issues"
+    )
     public AcceptedOrder(
         final int id,
         final Restaurant restaurant,
@@ -55,6 +59,10 @@ public class AcceptedOrder extends ReadyOrder {
      * @param acceptanceTime
      * @param deliveryman
      */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The deliveryman's credit can be mutated without issues"
+    )
     public AcceptedOrder(
         final ReadyOrder order,
         final Timestamp acceptanceTime,
@@ -82,6 +90,10 @@ public class AcceptedOrder extends ReadyOrder {
     /**
      * @return the User of the deliveryman
      */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The deliveryman's credit can be mutated without issues"
+    )
     public DeliverymanUser getDeliveryman() {
         return deliveryman;
     }

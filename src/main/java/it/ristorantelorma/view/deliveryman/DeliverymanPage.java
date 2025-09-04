@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -256,9 +257,25 @@ public final class DeliverymanPage {
                             JOptionPane.QUESTION_MESSAGE
                         );
                         if (scelta == JOptionPane.YES_OPTION) {
-                            final Timestamp now = new Timestamp(System.currentTimeMillis());
+                            final Timestamp now = Timestamp.valueOf(LocalDateTime.now());
                             final var deliverResult = DeliveredOrder.DAO.from(conn, order, now);
                             if (deliverResult.isSuccess()) {
+                                // Accredit the compensation to the deliveryman
+                                final DeliverymanUser deliveryman = order.getDeliveryman();
+                                final Result<DeliverymanUser> resUpdate = DeliverymanUser.DAO.updateCredit(
+                                    conn,
+                                    deliveryman,
+                                    deliveryman.getCredit().add(order.getShippingRate())
+                                );
+                                if (!resUpdate.isSuccess()) {
+                                    JOptionPane.showMessageDialog(
+                                        frame,
+                                        "Errore nell'accredito del compenso al fattorino: " + resUpdate.getErrorMessage(),
+                                        ERROR_WINDOW_TITLE,
+                                        JOptionPane.ERROR_MESSAGE
+                                    );
+                                    return;
+                                }
                                 JOptionPane.showMessageDialog(
                                     frame,
                                     "Ordine consegnato!",
