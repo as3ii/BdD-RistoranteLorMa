@@ -245,6 +245,8 @@ public abstract class User {
             BigDecimal credit = null;
             if (role == Role.CLIENT) {
                 credit = DEFAULT_CREDIT;
+            } else if (role == Role.DELIVERYMAN) {
+                credit = BigDecimal.ZERO;
             }
             try (
                 PreparedStatement statement = DBHelper.prepare(

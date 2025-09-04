@@ -1,33 +1,58 @@
 package it.ristorantelorma.view.admin;
 
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.BoxLayout;
-import javax.swing.Box;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.sql.Connection;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
+import it.ristorantelorma.model.DatabaseConnectionManager;
+import it.ristorantelorma.model.Restaurant;
+import it.ristorantelorma.model.Result;
+import it.ristorantelorma.model.Review;
 
 /**
  * Administration interface.
  */
 public final class AdminDashboard {
+
+    private static final String ERROR_WINDOW_TITLE = "Errore";
+    private static final int DASHBOARD_WIDTH = 800;
+    private static final int DASHBOARD_HEIGHT = 600;
+    private static final int REVIEWS_WIDTH = 600;
+    private static final int REVIEWS_HEIGHT = 400;
+    private static final int COMBO_WIDTH = 200;
+    private static final int COMBO_HEIGHT = 30;
+
     private final JFrame frame;
-    private final JComboBox<String> restaurantComboBox;
+    private final JComboBox<Restaurant> restaurantComboBox;
 
     /**
      * Constructor for the admin dashboard.
      */
     public AdminDashboard() {
         frame = new JFrame("DeliveryDB");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        final int windowWidth = 800;
-        final int windowHeight = 600;
-        frame.setSize(windowWidth, windowHeight);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(DASHBOARD_WIDTH, DASHBOARD_HEIGHT);
         frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout());
 
@@ -51,10 +76,38 @@ public final class AdminDashboard {
         final int verticalStrutSmall = 10;
         centerPanel.add(Box.createVerticalStrut(verticalStrutSmall));
 
-        final int comboWidth = 200;
-        final int comboHeight = 30;
-        restaurantComboBox = new JComboBox<>(new String[]{"Osteria dei Sapori"}); // Da popolare dinamicamente
-        restaurantComboBox.setMaximumSize(new Dimension(comboWidth, comboHeight));
+        // Load restaurants from DB
+        final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+        final Result<Collection<Restaurant>> resRestaurant = Restaurant.DAO.list(conn);
+        if (!resRestaurant.isSuccess()) {
+            JOptionPane.showMessageDialog(
+                frame,
+                "Errore nella raccolta della lista ristoranti.\n" + resRestaurant.getErrorMessage(),
+                ERROR_WINDOW_TITLE,
+                JOptionPane.ERROR_MESSAGE
+            );
+            restaurantComboBox = null;
+            return;
+        }
+        final Collection<Restaurant> restaurants = resRestaurant.getValue();
+
+        restaurantComboBox = new JComboBox<>(restaurants.toArray(Restaurant[]::new));
+        restaurantComboBox.setRenderer(
+            new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(final JList<?> list, final Object value,
+                        final int index, final boolean isSelected, final boolean cellHasFocus) {
+                    final JLabel label = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus
+                    );
+                    if (value != null) {
+                        label.setText(((Restaurant) value).getRestaurantName());
+                    }
+                    return label;
+                }
+            }
+        );
+        restaurantComboBox.setMaximumSize(new Dimension(COMBO_WIDTH, COMBO_HEIGHT));
         centerPanel.add(restaurantComboBox);
         centerPanel.add(Box.createVerticalGlue());
 
@@ -68,6 +121,113 @@ public final class AdminDashboard {
         bottomPanel.add(new JButton("Worst restaurant"));
         bottomPanel.add(new JButton("Best deliverer"));
         frame.add(bottomPanel, BorderLayout.SOUTH);
+
+        // Listener for the button View Reviews
+        viewReviewsButton.addActionListener(e -> {
+            final Restaurant selectedRestaurant = (Restaurant) restaurantComboBox.getSelectedItem();
+            if (selectedRestaurant != null) {
+                new ReviewsWindow(selectedRestaurant).setVisible(true);
+            }
+        });
+    }
+
+    /**
+     * Finestra che mostra le recensioni di un ristorante.
+     */
+    private static class ReviewsWindow {
+
+        private final JFrame frame;
+        private final JTable table;
+        private final DefaultTableModel tableModel;
+        private final Map<Integer, Review> reviews;
+
+        ReviewsWindow(final Restaurant restaurant) {
+            frame = new JFrame("Recensioni di " + restaurant.getRestaurantName());
+            frame.setSize(REVIEWS_WIDTH, REVIEWS_HEIGHT);
+            frame.setLocationRelativeTo(null);
+            frame.setLayout(new BorderLayout());
+
+            // Columns: codice, utente, data, voto, commento
+            final String[] columns = {"Codice", "Utente", "Data", "Voto", "Commento"};
+            tableModel = new DefaultTableModel(columns, 0) {
+                @Override
+                public boolean isCellEditable(final int row, final int column) {
+                    return false;
+                }
+            };
+            table = new JTable(tableModel);
+            table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            frame.add(new JScrollPane(table), BorderLayout.CENTER);
+
+            // Button to delete a review
+            final JButton deleteButton = new JButton("Elimina recensione");
+            deleteButton.addActionListener(e -> deleteSelectedReview());
+            final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.add(deleteButton);
+            frame.add(buttonPanel, BorderLayout.SOUTH);
+
+            // Load reviews from DB
+            final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+            final Result<Collection<Review>> resReviews = Review.DAO.list(conn, restaurant);
+            if (!resReviews.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Errore nella raccolta della lista ristoranti.\n" + resReviews.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+            reviews = resReviews.getValue().stream().collect(Collectors.toMap(Review::getId, e -> e));
+            for (final Review r : reviews.values().stream().sorted(Comparator.comparing(Review::getId)).toList()) {
+                final Object[] row = {
+                    r.getId(),
+                    r.getUser().getUsername(),
+                    r.getDate().toLocalDateTime().format(
+                        DateTimeFormatter.ofPattern("dd/mm/yyyy HH:mm")
+                    ),
+                    r.getVote().getValue(),
+                    r.getComment().orElse("")
+                };
+                tableModel.addRow(row);
+            }
+        }
+
+        private void deleteSelectedReview() {
+            final int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Seleziona una recensione da eliminare."
+                );
+                return;
+            }
+            final int id = (int) tableModel.getValueAt(selectedRow, 0);
+            final int confirm = JOptionPane.showConfirmDialog(
+                frame,
+                "Vuoi eliminare la recensione selezionata?",
+                "Conferma eliminazione",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+            final Connection conn = DatabaseConnectionManager.getInstance().getConnection();
+            final Result<?> resDel = Review.DAO.delete(conn, reviews.get(id));
+            if (!resDel.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                   "Errore: recensione non trovata."
+                );
+            } else {
+                JOptionPane.showMessageDialog(frame, "Recensione eliminata.");
+                reviews.remove(id);
+                table.removeRowSelectionInterval(selectedRow, selectedRow);
+            }
+        }
+
+        public void setVisible(final boolean v) {
+            frame.setVisible(v);
+        }
     }
 
     /**

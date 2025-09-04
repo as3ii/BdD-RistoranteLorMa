@@ -392,7 +392,7 @@ public class RegisterPage {
             );
             return;
         }
-        if (!isDeliveryMan) {
+        if (role == Role.CLIENT) {
             final ClientUser user = (ClientUser) resInsert.getValue();
             final Result<ClientUser> resCredit = ClientUser.DAO.updateCredit(conn, user, credit);
             if (!resCredit.isSuccess()) {
@@ -428,8 +428,8 @@ public class RegisterPage {
         phoneField.setText("");
         emailField.setText("");
         creditField.setText("");
-    deliveryManCheckBox.setSelected(false);
-    adminCheckBox.setSelected(false);
+        deliveryManCheckBox.setSelected(false);
+        adminCheckBox.setSelected(false);
     }
 
     /**
