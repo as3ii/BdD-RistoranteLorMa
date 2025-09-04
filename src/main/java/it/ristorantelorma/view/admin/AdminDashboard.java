@@ -28,6 +28,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import it.ristorantelorma.model.DatabaseConnectionManager;
 import it.ristorantelorma.model.Food;
+import it.ristorantelorma.model.FoodType;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.Review;
@@ -39,6 +40,8 @@ import it.ristorantelorma.model.user.DeliverymanUser;
 public final class AdminDashboard {
 
     private static final String ERROR_WINDOW_TITLE = "Errore";
+    private static final String MOST_POPULAR_CUISINE_TYPE_LABEL = "Most popular cuisine type";
+    private static final String WORST_RESTAURANT_LABEL = "Worst restaurant";
     private static final String TOP_DISH_LABEL = "Top dish";
     private static final String BEST_RESTAURANT_LABEL = "Best restaurant";
     private static final String BEST_DELIVERER_LABEL = "Best deliverer";
@@ -145,8 +148,54 @@ public final class AdminDashboard {
             );
         });
         bottomPanel.add(topDishButton);
-        bottomPanel.add(new JButton("Most popular cuisine type"));
-        bottomPanel.add(new JButton("5 most chosen restaurants"));
+
+        final JButton mostPopularCuisineButton = new JButton(MOST_POPULAR_CUISINE_TYPE_LABEL);
+        mostPopularCuisineButton.addActionListener(e -> {
+            final Result<Entry<FoodType, Integer>> result = FoodType.DAO.getMostPurchased(conn);
+            if (!result.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Errore nella ricerca della tipologia di cucina più acquistata: " + result.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            final FoodType foodType = result.getValue().getKey();
+            final String info = "Tipologia di cucina più acquistata: " + foodType.getName()
+                + "\nTotale piatti acquistati: " + result.getValue().getValue();
+            JOptionPane.showMessageDialog(
+                frame,
+                info,
+                MOST_POPULAR_CUISINE_TYPE_LABEL,
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+        bottomPanel.add(mostPopularCuisineButton);
+
+        final JButton worstRestaurantsButton = new JButton(WORST_RESTAURANT_LABEL);
+        worstRestaurantsButton.addActionListener(e -> {
+            final Result<Entry<Restaurant, Float>> result = Restaurant.DAO.getTopByNegativeReviews(conn);
+            if (!result.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Errore nella ricerca del ristorante con le peggiori recensioni: " + result.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            final String info = "Ristorante con più recensioni negative:"
+                + "\nNome: " + result.getValue().getKey().getRestaurantName()
+                + "\nMedia voti: " + result.getValue().getValue();
+            JOptionPane.showMessageDialog(
+                frame,
+                info,
+                WORST_RESTAURANT_LABEL,
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+        bottomPanel.add(worstRestaurantsButton);
 
         // Button Best restaurant
         final JButton bestRestaurantButton = new JButton(BEST_RESTAURANT_LABEL);
