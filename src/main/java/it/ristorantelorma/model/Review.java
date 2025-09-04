@@ -187,7 +187,7 @@ public final class Review {
                 while (result.next()) {
                     final int id = result.getInt("codice");
                     final Timestamp date = result.getTimestamp("data");
-                    final Vote vote = Vote.valueOf(result.getString("voto"));
+                    final Vote vote = Vote.fromString(result.getString("voto"));
                     final Optional<String> comment = Optional.ofNullable(
                         result.getString("commento")
                     );

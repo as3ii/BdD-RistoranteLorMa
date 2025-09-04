@@ -1,5 +1,6 @@
 package it.ristorantelorma.view.customer;
 
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.sql.Connection;
 import java.sql.Timestamp;
@@ -7,11 +8,13 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -54,6 +57,21 @@ public final class ReviewDialog {
         final JPanel votePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         votePanel.add(new JLabel("Voto:"));
         final JComboBox<Vote> voteComboBox = new JComboBox<>(Vote.values());
+        voteComboBox.setRenderer(
+            new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(final JList<?> list, final Object value,
+                        final int index, final boolean isSelected, final boolean cellHasFocus) {
+                    final JLabel label = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus
+                    );
+                    if (value != null) {
+                        label.setText(String.valueOf(((Vote) value).getValue()));
+                    }
+                    return label;
+                }
+}
+        );
         votePanel.add(voteComboBox);
         panel.add(votePanel);
 

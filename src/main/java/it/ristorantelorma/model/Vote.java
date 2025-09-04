@@ -1,5 +1,7 @@
 package it.ristorantelorma.model;
 
+import java.util.Locale;
+
 /**
  * This enum represent the possible votes in a Review.
  */
@@ -31,6 +33,29 @@ public enum Vote {
         this.value = value;
     }
 
+    /**
+     * @param typeStr
+     * @return the right Vote
+     * @throws IllegalArgumentException if typeStr is invalid
+     */
+    public static Vote fromString(final String typeStr) {
+        switch (typeStr.strip().toLowerCase(Locale.getDefault())) {
+            case "one", "1":
+                return ONE;
+            case "two", "2":
+                return TWO;
+            case "three", "3":
+                return THREE;
+            case "four", "4":
+                return FOUR;
+            case "five", "5":
+                return FIVE;
+            default:
+                throw new IllegalArgumentException(
+                    "Invalid MacroType value: " + typeStr
+                );
+        }
+    }
     /**
      * @return integer equivalent of the Vote
      */
