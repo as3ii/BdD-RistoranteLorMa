@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -26,9 +27,11 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import it.ristorantelorma.model.DatabaseConnectionManager;
+import it.ristorantelorma.model.Food;
 import it.ristorantelorma.model.Restaurant;
 import it.ristorantelorma.model.Result;
 import it.ristorantelorma.model.Review;
+import it.ristorantelorma.model.user.DeliverymanUser;
 
 /**
  * Administration interface.
@@ -36,6 +39,9 @@ import it.ristorantelorma.model.Review;
 public final class AdminDashboard {
 
     private static final String ERROR_WINDOW_TITLE = "Errore";
+    private static final String TOP_DISH_LABEL = "Top dish";
+    private static final String BEST_RESTAURANT_LABEL = "Best restaurant";
+    private static final String BEST_DELIVERER_LABEL = "Best deliverer";
     private static final int DASHBOARD_WIDTH = 800;
     private static final int DASHBOARD_HEIGHT = 600;
     private static final int REVIEWS_WIDTH = 600;
@@ -115,11 +121,85 @@ public final class AdminDashboard {
 
         // Bottom panel with buttons
         final JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        bottomPanel.add(new JButton("Top dish"));
+        final JButton topDishButton = new JButton(TOP_DISH_LABEL);
+        topDishButton.addActionListener(e -> {
+            final Result<Entry<Food, Integer>> result = Food.DAO.getMostPurchased(conn);
+            if (!result.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Errore nella ricerca della vivanda più acquistata: " + result.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            final Food food = result.getValue().getKey();
+            final int count = result.getValue().getValue();
+            JOptionPane.showMessageDialog(
+                frame,
+                "Vivanda più acquistata: " + food.getName()
+                    + "\nRistorante: " + food.getRestaurant().getRestaurantName()
+                    + "\nQuantità totale: " + count,
+                TOP_DISH_LABEL,
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+        bottomPanel.add(topDishButton);
         bottomPanel.add(new JButton("Most popular cuisine type"));
         bottomPanel.add(new JButton("5 most chosen restaurants"));
-        bottomPanel.add(new JButton("Worst restaurant"));
-        bottomPanel.add(new JButton("Best deliverer"));
+
+        // Button Best restaurant
+        final JButton bestRestaurantButton = new JButton(BEST_RESTAURANT_LABEL);
+        bestRestaurantButton.addActionListener(e -> {
+            final Result<Entry<Restaurant, Integer>> result = Restaurant.DAO.getTopByOrderCount(conn);
+            if (!result.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Errore nella ricerca del ristorante con più ordini: " + result.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            final String info = "Ristorante con più ordini:\n"
+                    + "Nome: " + result.getValue().getKey().getRestaurantName() + "\n"
+                    + "Numero ordini: " + result.getValue().getValue();
+            JOptionPane.showMessageDialog(
+                frame,
+                info,
+                BEST_RESTAURANT_LABEL,
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+        bottomPanel.add(bestRestaurantButton);
+
+        // Button Best deliverer
+        final JButton bestDelivererButton = new JButton(BEST_DELIVERER_LABEL);
+        bestDelivererButton.addActionListener(e -> {
+            final Result<Entry<DeliverymanUser, Integer>> result = DeliverymanUser.DAO.getTopByDeliveryCount(conn);
+            if (!result.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Errore nella ricerca del fattorino con più ordini consegnati: " + result.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+            final DeliverymanUser deliveryman = result.getValue().getKey();
+            final String info = "Miglior fattorino:\n"
+                + "Username: " + deliveryman.getUsername() + "\n"
+                + "Nome: " + deliveryman.getName() + "\n"
+                + "Cognome: " + deliveryman.getSurname() + "\n"
+                + "Numero ordini consegnati: " + result.getValue().getValue();
+            JOptionPane.showMessageDialog(
+                frame,
+                info,
+                BEST_DELIVERER_LABEL,
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+        bottomPanel.add(bestDelivererButton);
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         // Listener for the button View Reviews
