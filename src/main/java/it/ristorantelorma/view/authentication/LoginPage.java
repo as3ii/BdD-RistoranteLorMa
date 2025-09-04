@@ -9,7 +9,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.sql.Connection;
 import java.util.Optional;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,9 +25,7 @@ import it.ristorantelorma.view.FirstPage;
 import it.ristorantelorma.view.admin.AdminDashboard;
 import it.ristorantelorma.view.customer.RestaurantsPage;
 import it.ristorantelorma.view.deliveryman.DeliverymanPage;
-import it.ristorantelorma.view.restaurant.RestaurantMenuPage;
-import it.ristorantelorma.model.user.RestaurantUser;
-
+import it.ristorantelorma.view.restaurant.RestaurantManagementPage;
 
 /**
  * Rappresenta la pagina di login dell'applicazione.
@@ -197,11 +194,10 @@ public final class LoginPage {
                             new DeliverymanPage(conn, username).setVisible(true);
                         }
                         case RESTAURANT -> {
-                            new RestaurantMenuPage((RestaurantUser) user).setVisible(true);
+                            new RestaurantManagementPage(username).setVisible(true);
                         }
                         default -> {
-                            final RestaurantsPage restaurantsPage = new RestaurantsPage(this, conn, username);
-                            restaurantsPage.setVisible(true);
+                            new RestaurantsPage(this, conn, username).setVisible(true);
                         }
                     }
                 });
