@@ -434,5 +434,82 @@ public final class Food {
                 return Result.failure(errorMessage);
             }
         }
+
+        /**
+         * Update the given food on the database, return the new Food.
+         * @param connection
+         * @param food
+         * @param name
+         * @param price
+         * @param type
+         * @return the new Food.
+         */
+        public static Result<Food> update(
+            final Connection connection,
+            final Food food,
+            final String name,
+            final BigDecimal price,
+            final FoodType type
+        ) {
+            final int id = food.getId();
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    Queries.UPDATE_FOOD,
+                    name,
+                    price.toPlainString(),
+                    type.getName(),
+                    id
+                );
+            ) {
+                final int rows = statement.executeUpdate();
+                if (rows < 1) {
+                    final String errorMessage =
+                        "Failed food update, no rows changed";
+                    LOGGER.log(Level.SEVERE, errorMessage);
+                    return Result.failure(errorMessage);
+                } else {
+                    return Result.success(
+                        new Food(id, name, food.getRestaurant(), price, type)
+                    );
+                }
+            } catch (SQLException e) {
+                final String errorMessage =
+                    "Failed updating Food";
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
+
+        /**
+         * Delete the given food from the database.
+         * @param connection
+         * @param food
+         * @return success if it has been deleted correctly, error otherwise
+         */
+        public static Result<?> delete(final Connection connection, final Food food) {
+            try (
+                PreparedStatement statement = DBHelper.prepare(
+                    connection,
+                    Queries.DELETE_FOOD,
+                    food.getId()
+                );
+            ) {
+                final int rows = statement.executeUpdate();
+                if (rows < 1) {
+                    final String errorMessage =
+                        "Failed Food deletion, no rows removed";
+                    LOGGER.log(Level.SEVERE, errorMessage);
+                    return Result.failure(errorMessage);
+                } else {
+                    return Result.success(new Object()); // Return dummy value
+                }
+            } catch (SQLException e) {
+                final String errorMessage =
+                    "Failed deleting Food";
+                LOGGER.log(Level.SEVERE, errorMessage, e);
+                return Result.failure(errorMessage);
+            }
+        }
     }
 }

@@ -195,6 +195,24 @@ public final class Queries {
         """;
 
     /**
+     * Update name/price/FoodType.
+     */
+    public static final String UPDATE_FOOD =
+        """
+        UPDATE vivande
+        SET nome = ?, prezzo = ?, tipologia = ?
+        WHERE codice = ?;
+        """;
+
+    /**
+     * Delete the food.
+     */
+    public static final String DELETE_FOOD =
+        """
+        DELETE FROM vivande WHERE codice = ?;
+        """;
+
+    /**
      * Insert a new record in dettaglio_ordini.
      */
     public static final String INSERT_ORDER_DETAIL =
