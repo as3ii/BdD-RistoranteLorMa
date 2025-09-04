@@ -7,7 +7,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -17,9 +16,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -35,6 +31,8 @@ import it.ristorantelorma.model.user.ClientUser;
 import it.ristorantelorma.model.user.Role;
 import it.ristorantelorma.model.user.User;
 import it.ristorantelorma.view.FirstPage;
+import it.ristorantelorma.view.ViewUtils;
+import it.ristorantelorma.view.ViewUtils.Form;
 
 /**
  * Represent the registration page.
@@ -124,45 +122,29 @@ public class RegisterPage {
             container.setLayout(new BorderLayout());
             container.setBackground(Color.WHITE);
 
-            final JPanel formPanel = new JPanel(new GridBagLayout());
-            formPanel.setBackground(Color.WHITE);
-            final GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(10, 10, 10, 10);
-            int row = 0;
+            final Form form = new Form();
 
-            addFormField(formPanel, gbc, "Username:", usernameField, row++);
-            addFormField(formPanel, gbc, "Nome:", nameField, row++);
-            addFormField(formPanel, gbc, "Cognome:", surnameField, row++);
-            addFormField(formPanel, gbc, "Password:", passwordField, row++);
-            addFormField(formPanel, gbc, "Via:", streetField, row++);
-            addFormField(formPanel, gbc, "Civico:", houseNumberField, row++);
-            addFormField(formPanel, gbc, "Città:", cityField, row++);
-            addFormField(formPanel, gbc, "Telefono:", phoneField, row++);
-            addFormField(formPanel, gbc, "Email:", emailField, row++);
-            addFormField(formPanel, gbc, "Credito:", creditField, row++);
+            form.addField("Username:", usernameField);
+            form.addField("Nome:", nameField);
+            form.addField("Cognome:", surnameField);
+            form.addField("Password:", passwordField);
+            form.addField("Via:", streetField);
+            form.addField("Civico:", houseNumberField);
+            form.addField("Città:", cityField);
+            form.addField("Telefono:", phoneField);
+            form.addField("Email:", emailField);
+            form.addField("Credito:", creditField);
 
             // Checkbox for delivery man
-            gbc.gridx = 0;
-            gbc.gridy = row++;
-            gbc.gridwidth = 2;
-            gbc.anchor = GridBagConstraints.CENTER;
-            formPanel.add(deliveryManCheckBox, gbc);
+            form.addCenterComponent(deliveryManCheckBox);
 
             // Checkbox for admin
-            gbc.gridx = 0;
-            gbc.gridy = row++;
-            gbc.gridwidth = 2;
-            gbc.anchor = GridBagConstraints.CENTER;
-            formPanel.add(adminCheckBox, gbc);
+            form.addCenterComponent(adminCheckBox);
 
             final JPanel buttonPanel = createButtonPanel();
-            gbc.gridx = 0;
-            gbc.gridy = row;
-            gbc.gridwidth = 2;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            formPanel.add(buttonPanel, gbc);
+            form.addCenterComponent(buttonPanel);
 
-            container.add(formPanel, BorderLayout.CENTER);
+            container.add(form, BorderLayout.CENTER);
         });
 
         this.mainFrame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -206,30 +188,6 @@ public class RegisterPage {
         });
 
         updateRegisterButtonState();
-    }
-
-    /**
-     * Add a field to the form panel.
-     * @param panel
-     * @param gbc
-     * @param labelText
-     * @param field
-     * @param row
-     */
-    private void addFormField(final JPanel panel, final GridBagConstraints gbc,
-                             final String labelText, final JTextField field, final int row) {
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        final JLabel label = new JLabel(labelText);
-        label.setFont(new Font("SansSerif", Font.PLAIN, FONT_SIZE));
-        panel.add(label, gbc);
-
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(field, gbc);
     }
 
     /**
@@ -316,16 +274,16 @@ public class RegisterPage {
      */
     private void updateRegisterButtonState() {
         final boolean allFilled =
-            !isBlank(usernameField.getText())
-            && !isBlank(nameField.getText())
-            && !isBlank(surnameField.getText())
-            && !isBlank(passwordField.getText())
-            && !isBlank(streetField.getText())
-            && !isBlank(houseNumberField.getText())
-            && !isBlank(cityField.getText())
-            && !isBlank(phoneField.getText())
-            && !isBlank(emailField.getText())
-            && !isBlank(creditField.getText());
+            !ViewUtils.isBlank(usernameField.getText())
+            && !ViewUtils.isBlank(nameField.getText())
+            && !ViewUtils.isBlank(surnameField.getText())
+            && !ViewUtils.isBlank(passwordField.getText())
+            && !ViewUtils.isBlank(streetField.getText())
+            && !ViewUtils.isBlank(houseNumberField.getText())
+            && !ViewUtils.isBlank(cityField.getText())
+            && !ViewUtils.isBlank(phoneField.getText())
+            && !ViewUtils.isBlank(emailField.getText())
+            && !ViewUtils.isBlank(creditField.getText());
         if (registerButton != null) {
             registerButton.setEnabled(allFilled);
         }
@@ -472,34 +430,5 @@ public class RegisterPage {
      */
     public void hide() {
         this.mainFrame.setVisible(false);
-    }
-
-    /**
-     * Tests if a CharSequence is empty {@code ""}, null, or contains only
-     * whitespace as defined by {@link Character#isWhitespace(char)}.
-     * Original: https://commons.apache.org/proper/commons-lang/apidocs/src-html/org/apache/commons/lang3/StringUtils.html
-     *
-     * <pre>
-     * isBlank(null)      = true
-     * isBlank("")        = true
-     * isBlank(" ")       = true
-     * isBlank("bob")     = false
-     * isBlank("  bob  ") = false
-     * </pre>
-     *
-     * @param cs the CharSequence to check, may be null
-     * @return {@code true} if the CharSequence is null, empty or whitespace only
-     */
-    static boolean isBlank(final CharSequence cs) {
-        final int strLen = cs == null ? 0 : cs.length();
-        if (strLen == 0) {
-            return true;
-        }
-        for (int i = 0; i < strLen; i++) {
-            if (!Character.isWhitespace(cs.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
     }
 }

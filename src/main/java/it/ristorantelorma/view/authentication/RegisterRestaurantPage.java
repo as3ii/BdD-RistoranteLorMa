@@ -1,18 +1,5 @@
 package it.ristorantelorma.view.authentication;
 
-import it.ristorantelorma.controller.PasswordManager;
-import it.ristorantelorma.model.DatabaseConnectionManager;
-import it.ristorantelorma.model.Restaurant;
-import it.ristorantelorma.model.Result;
-import it.ristorantelorma.model.user.RestaurantUser;
-import it.ristorantelorma.model.user.Role;
-import it.ristorantelorma.model.user.User;
-import it.ristorantelorma.view.FirstPage;
-
-import java.awt.Color;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -21,15 +8,21 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import it.ristorantelorma.controller.PasswordManager;
+import it.ristorantelorma.model.DatabaseConnectionManager;
+import it.ristorantelorma.model.Restaurant;
+import it.ristorantelorma.model.Result;
+import it.ristorantelorma.model.user.RestaurantUser;
+import it.ristorantelorma.model.user.Role;
+import it.ristorantelorma.model.user.User;
+import it.ristorantelorma.view.FirstPage;
+import it.ristorantelorma.view.ViewUtils.Form;
 
 /**
  * Represent the registration of a restaurant.
@@ -126,27 +119,23 @@ public final class RegisterRestaurantPage {
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setResizable(false);
 
-        final JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        final Form form = new Form();
 
-        int row = 0;
-        addFormField(formPanel, gbc, "Username:", usernameField, row++);
-        addFormField(formPanel, gbc, "Nome:", nameField, row++);
-        addFormField(formPanel, gbc, "Cognome:", surnameField, row++);
-        addFormField(formPanel, gbc, "Password:", passwordField, row++);
-        addFormField(formPanel, gbc, "Via:", streetField, row++);
-        addFormField(formPanel, gbc, "Civico:", houseNumberField, row++);
-        addFormField(formPanel, gbc, "Città:", cityField, row++);
-        addFormField(formPanel, gbc, "Telefono:", phoneField, row++);
-        addFormField(formPanel, gbc, "Email:", emailField, row++);
+        form.addField("Username:", usernameField);
+        form.addField("Nome:", nameField);
+        form.addField("Cognome:", surnameField);
+        form.addField("Password:", passwordField);
+        form.addField("Via:", streetField);
+        form.addField("Civico:", houseNumberField);
+        form.addField("Città:", cityField);
+        form.addField("Telefono:", phoneField);
+        form.addField("Email:", emailField);
 
         // Campi specifici ristorante
-        addFormField(formPanel, gbc, "Nome Attività:", restaurantNameField, row++);
-        addFormField(formPanel, gbc, "Partita IVA:", partitaIVAField, row++);
-        addFormField(formPanel, gbc, "Ora Apertura (HH:mm):", openingField, row++);
-        addFormField(formPanel, gbc, "Ora Chiusura (HH:mm):", closingField, row++);
+        form.addField("Nome Attività:", restaurantNameField);
+        form.addField("Partita IVA:", partitaIVAField);
+        form.addField("Ora Apertura (HH:mm):", openingField);
+        form.addField("Ora Chiusura (HH:mm):", closingField);
 
         // Bottoni
         final JPanel buttonPanel = new JPanel();
@@ -155,33 +144,15 @@ public final class RegisterRestaurantPage {
         buttonPanel.add(registerButton);
         buttonPanel.add(backButton);
 
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 2;
-        formPanel.add(buttonPanel, gbc);
+        form.addCenterComponent(buttonPanel);
 
-        mainFrame.add(formPanel);
+        mainFrame.add(form);
 
         registerButton.addActionListener(e -> handleRegisterRestaurant());
         backButton.addActionListener(e -> {
             this.hide();
             registerPage.show();
         });
-    }
-
-    private void addFormField(
-        final JPanel panel, final GridBagConstraints gbc,
-        final String labelText, final JTextField field, final int row
-    ) {
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel.add(new JLabel(labelText), gbc);
-
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(field, gbc);
     }
 
     private void handleRegisterRestaurant() {
