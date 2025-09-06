@@ -245,7 +245,7 @@ public abstract class User {
             BigDecimal credit = null;
             if (role == Role.CLIENT) {
                 credit = DEFAULT_CREDIT;
-            } else if (role == Role.DELIVERYMAN) {
+            } else if (role == Role.DELIVERYMAN || role == Role.RESTAURANT) {
                 credit = BigDecimal.ZERO;
             }
             try (
@@ -325,7 +325,8 @@ public abstract class User {
                                 email,
                                 city,
                                 street,
-                                houseNumber
+                                houseNumber,
+                                credit
                             );
                             break;
                         default:
@@ -430,6 +431,11 @@ public abstract class User {
                             );
                             break;
                         case RESTAURANT:
+                            if (credit.isEmpty()) {
+                                throw new IllegalStateException(
+                                    "Role cannot be 'restaurant' with empty credit"
+                                );
+                            }
                             newUser = new RestaurantUser(
                                 name,
                                 surname,
@@ -439,7 +445,8 @@ public abstract class User {
                                 email,
                                 city,
                                 street,
-                                houseNumber
+                                houseNumber,
+                                credit.get()
                             );
                             break;
                         default:

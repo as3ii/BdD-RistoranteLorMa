@@ -1,13 +1,17 @@
 package it.ristorantelorma.model.user;
 
 import it.ristorantelorma.model.Result;
+import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Represent an entry in the USERS table of the database with role = Role.RESTAURANT.
  */
 public final class RestaurantUser extends User {
+
+    private BigDecimal credit;
 
     /**
      * @param name          the first name of the User
@@ -19,6 +23,7 @@ public final class RestaurantUser extends User {
      * @param city
      * @param street
      * @param houseNumber
+     * @param credit
      */
     RestaurantUser(
         final String name,
@@ -29,7 +34,8 @@ public final class RestaurantUser extends User {
         final String email,
         final String city,
         final String street,
-        final String houseNumber
+        final String houseNumber,
+        final BigDecimal credit
     ) {
         super(
             name,
@@ -42,12 +48,14 @@ public final class RestaurantUser extends User {
             street,
             houseNumber
         );
+        this.credit = credit;
     }
 
     /**
      * @param user       the user MUST be an instance of RestaurantUser
+     * @param credit
      */
-    private RestaurantUser(final User user) {
+    private RestaurantUser(final User user, final BigDecimal credit) {
         super(
             user.getName(),
             user.getSurname(),
@@ -59,6 +67,22 @@ public final class RestaurantUser extends User {
             user.getStreet(),
             user.getHouseNumber()
         );
+        this.credit = credit;
+    }
+
+    /**
+     * @return the deliveryman balance
+     */
+    public BigDecimal getCredit() {
+        return credit;
+    }
+
+    /**
+     * Set deliveryman's credit. This MUST remain private.
+     * @param newCredit
+     */
+    private void setCredit(final BigDecimal newCredit) {
+        this.credit = newCredit;
     }
 
     /**
@@ -109,7 +133,33 @@ public final class RestaurantUser extends User {
                 );
             }
 
-            return Result.success(Optional.of(new RestaurantUser(user)));
+            return Result.success(
+                Optional.of(
+                    new RestaurantUser(user, ((RestaurantUser) user).getCredit())
+                )
+            );
+        }
+
+        /**
+         * Set the credit for the given RestaurantUser.
+         * @param connection
+         * @param user
+         * @param credit
+         * @return the updated RestaurantUser
+         */
+        public static Result<RestaurantUser> updateCredit(
+            final Connection connection,
+            final RestaurantUser user,
+            final BigDecimal credit
+        ) {
+            Objects.requireNonNull(credit); // Avoid setting the field to null in the DB
+            final Result<?> result = User.DAO.updateCredit(connection, user, credit);
+            if (result.isSuccess()) {
+                user.setCredit(credit);
+                return Result.success(user);
+            } else {
+                return Result.failure(result.getErrorMessage());
+            }
         }
     }
 }

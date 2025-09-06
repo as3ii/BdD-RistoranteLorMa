@@ -35,6 +35,7 @@ import it.ristorantelorma.model.order.Order;
 import it.ristorantelorma.model.order.ReadyOrder;
 import it.ristorantelorma.model.order.WaitingOrder;
 import it.ristorantelorma.model.user.ClientUser;
+import it.ristorantelorma.model.user.RestaurantUser;
 
 /**
  * Food selection menu for an order.
@@ -173,6 +174,19 @@ public final class ResMenu {
                     .stream()
                     .map(el -> el.getKey().getPrice().multiply(new BigDecimal(el.getValue())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+            final RestaurantUser restaurantUser = restaurant.getUser();
+            final Result<RestaurantUser> resPayRest = RestaurantUser.DAO.updateCredit(
+                conn, restaurantUser, restaurantUser.getCredit().add(total)
+            );
+            if (!resPayRest.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    frame,
+                    "Errore nell'aggiornamento del bilancio del ristorante.\n" + resPayRest.getErrorMessage(),
+                    ERROR_WINDOW_TITLE,
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
             // TODO: properly handle shipping rate
             final BigDecimal shippingRate = new BigDecimal("2.5");
             total = total.add(shippingRate);
