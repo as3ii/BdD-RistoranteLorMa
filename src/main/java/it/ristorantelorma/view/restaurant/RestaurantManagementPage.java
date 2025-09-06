@@ -4,7 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.sql.Connection;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import javax.swing.Box;
@@ -104,10 +105,10 @@ public final class RestaurantManagementPage {
         final JButton updateButton = new JButton("Update");
         updateButton.addActionListener(e -> {
             final Timestamp openingTime = Timestamp.valueOf(
-                LocalDateTime.parse(openingTimeField.getText(), TIME_FORMATTER)
+                LocalDate.now().atTime(LocalTime.parse(openingTimeField.getText()))
             );
             final Timestamp closingTime = Timestamp.valueOf(
-                LocalDateTime.parse(closingTimeField.getText(), TIME_FORMATTER)
+                LocalDate.now().atTime(LocalTime.parse(closingTimeField.getText()))
             );
             final Result<Restaurant> resRestaurant = Restaurant.DAO.updateTime(conn, restaurant, openingTime, closingTime);
             if (!resRestaurant.isSuccess()) {
