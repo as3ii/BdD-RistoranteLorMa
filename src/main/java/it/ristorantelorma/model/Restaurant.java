@@ -2,6 +2,7 @@ package it.ristorantelorma.model;
 
 import it.ristorantelorma.controller.SimpleLogger;
 import it.ristorantelorma.model.user.RestaurantUser;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,6 +35,10 @@ public final class Restaurant {
      * @param openingTime       when the restaurant opens
      * @param closingTime       when the restaurant closes
      */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The restaurant's credit can be mutated without issues"
+    )
     public Restaurant(
         final RestaurantUser user,
         final String restaurantName,
@@ -51,6 +56,10 @@ public final class Restaurant {
     /**
      * @return the User that manage the Restaurant
      */
+    @SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "The restaurant's credit can be mutated without issues"
+    )
     public RestaurantUser getUser() {
         return user;
     }

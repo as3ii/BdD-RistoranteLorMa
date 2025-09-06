@@ -245,7 +245,7 @@ public abstract class User {
             BigDecimal credit = null;
             if (role == Role.CLIENT) {
                 credit = DEFAULT_CREDIT;
-            } else if (role == Role.DELIVERYMAN) {
+            } else if (role == Role.DELIVERYMAN || role == Role.RESTAURANT) {
                 credit = BigDecimal.ZERO;
             }
             try (
@@ -325,7 +325,8 @@ public abstract class User {
                                 email,
                                 city,
                                 street,
-                                houseNumber
+                                houseNumber,
+                                credit
                             );
                             break;
                         default:
@@ -430,6 +431,11 @@ public abstract class User {
                             );
                             break;
                         case RESTAURANT:
+                            if (credit.isEmpty()) {
+                                throw new IllegalStateException(
+                                    "Role cannot be 'restaurant' with empty credit"
+                                );
+                            }
                             newUser = new RestaurantUser(
                                 name,
                                 surname,
@@ -439,7 +445,8 @@ public abstract class User {
                                 email,
                                 city,
                                 street,
-                                houseNumber
+                                houseNumber,
+                                credit.get()
                             );
                             break;
                         default:
@@ -458,24 +465,17 @@ public abstract class User {
         }
 
         /**
-         * Set the credit for the given ClientUser or DeliverymanUser.
+         * Set the credit for the given User.
          * @param connection
          * @param user
          * @param credit
          * @return Success (empty) if the update succede, error otherwise
-         * @throws IllegalArgumentException if the given user is not a client or deliveryman
          */
         static Result<?> updateCredit(
             final Connection connection,
             final User user,
             final BigDecimal credit
         ) {
-            Objects.requireNonNull(credit); // Avoid setting the field to null in the DB
-            if (!(user instanceof ClientUser || user instanceof DeliverymanUser)) {
-                throw new IllegalArgumentException(
-                    "The user is not a ClientUser or a DeliverymanUser"
-                );
-            }
             try (
                 PreparedStatement statement = DBHelper.prepare(
                     connection,
