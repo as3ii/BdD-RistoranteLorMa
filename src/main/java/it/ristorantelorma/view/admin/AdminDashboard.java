@@ -65,10 +65,8 @@ public final class AdminDashboard {
         frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout());
 
-        // Top panel with Logout
+        // Top panel
         final JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        final JButton logoutButton = new JButton("Logout");
-        topPanel.add(logoutButton);
         frame.add(topPanel, BorderLayout.NORTH);
 
         // View Reviews and ComboBox in the center
