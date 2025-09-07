@@ -8,7 +8,7 @@ Project for the course "Basi di Dati" 2024-25
 - MariaDB 11 or later
 
 ### Running the application
-- Start the MySQL server (MariaDB)
+- Start the MySQL server (MariaDB) and setup the database (create new database using `tables.sql`, or use the provided docker `compose.yaml`)
 - NOTE: On windows, any `java` or `gradle` call needs to be followed by the parameter `-Dfile.encoding=UTF-8`
 - NOTE: If you need to set the database name or its server address, user and password, you can use the following environment variables:
     - `DB_HOSTNAME`: server hostname/IP (default: localhost)
