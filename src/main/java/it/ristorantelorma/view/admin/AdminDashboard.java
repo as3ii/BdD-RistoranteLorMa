@@ -348,7 +348,7 @@ public final class AdminDashboard {
             } else {
                 JOptionPane.showMessageDialog(frame, "Recensione eliminata.");
                 reviews.remove(id);
-                table.removeRowSelectionInterval(selectedRow, selectedRow);
+                ((DefaultTableModel) table.getModel()).removeRow(selectedRow);
             }
         }
 
