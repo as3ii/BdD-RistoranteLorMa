@@ -94,7 +94,7 @@ public final class Queries {
      */
     public static final String FIND_RESTAURANT_MOST_NEGATIVE_REVIEWS =
         """
-        SELECT ris.*,AVG(CAST(CAST(rec.voto AS CHAR) AS INT)) AS average
+        SELECT ris.*,AVG(CAST(rec.voto AS SIGNED)) AS average
         FROM ristoranti ris, recensioni rec
         WHERE ris.nome_attività = rec.nome_attività
         GROUP BY rec.nome_attività ORDER BY average ASC LIMIT 1;
