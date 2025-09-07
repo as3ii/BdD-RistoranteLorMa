@@ -7,11 +7,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Currency;
 import java.util.List;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -123,23 +121,13 @@ public final class MenuEditPage {
             form.addField("Nome:", nameField);
 
             final JFormattedTextField priceField = new JFormattedTextField();
-            final NumberFormat format = NumberFormat.getCurrencyInstance();
-            format.setCurrency(Currency.getInstance("EUR"));
+            final NumberFormat format = NumberFormat.getNumberInstance();
             format.setMinimumFractionDigits(2);
             format.setMaximumFractionDigits(2);
-            final NumberFormatter formatter = new NumberFormatter(format) {
-                @Override
-                public Object stringToValue(final String text) throws ParseException {
-                    String t = text;
-                    if (t != null && !t.startsWith(format.getCurrency().getSymbol())) {
-                        t = format.getCurrency().getSymbol() + t;
-                    }
-                    return super.stringToValue(t);
-                }
-            };
+            final NumberFormatter formatter = new NumberFormatter(format);
             priceField.setFormatterFactory(new DefaultFormatterFactory(formatter));
             priceField.setValue(BigDecimal.ZERO);
-            form.addField("Prezzo:", priceField);
+            form.addField("Prezzo: €", priceField);
 
             final JComboBox<FoodType> typeField = new JComboBox<>(types.toArray(FoodType[]::new));
             typeField.setRenderer(
