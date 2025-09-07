@@ -132,7 +132,7 @@ public final class DeliverymanPage {
                             + "<b>N. Civico:</b> " + client.getHouseNumber() + HTML_NEWLINE
                             + "<b>Piatti ordinati:</b>" + HTML_NEWLINE
                             + items + HTML_NEWLINE
-                            + "<b>Compenso:</b> $" + order.getShippingRate() + "</html>";
+                            + "<b>Compenso:</b> €" + order.getShippingRate() + "</html>";
 
                         final int choice = JOptionPane.showConfirmDialog(
                             frame,
@@ -247,7 +247,7 @@ public final class DeliverymanPage {
                             + "<b>Piatti ordinati:</b>" + HTML_NEWLINE
                             + items + HTML_NEWLINE
                             + "<b>Accettato il:</b> " + order.getAcceptanceTime() + HTML_NEWLINE
-                            + "<b>Compenso:</b> $" + order.getShippingRate() + "</html>";
+                            + "<b>Compenso:</b> €" + order.getShippingRate() + "</html>";
 
                         final int scelta = JOptionPane.showConfirmDialog(
                             frame,

@@ -261,11 +261,11 @@ public final class ResMenu {
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setPreferredSize(INFO_PANEL_DIMENSION);
 
-        final JLabel balanceLabel = new JLabel("Balance: $" + balance.toPlainString());
+        final JLabel balanceLabel = new JLabel("Balance: €" + balance.toPlainString());
         final JLabel orderSummaryLabel = new JLabel("Order Summary:");
         final JTextArea orderSummaryArea = new JTextArea(6, 20);
         orderSummaryArea.setEditable(false);
-        final JLabel totalLabel = new JLabel("Total: $0.0");
+        final JLabel totalLabel = new JLabel("Total: €0.0");
 
         final JPanel restaurantInfoPanel = new JPanel();
         restaurantInfoPanel.setLayout(new BoxLayout(restaurantInfoPanel, BoxLayout.Y_AXIS));
@@ -287,6 +287,9 @@ public final class ResMenu {
         infoPanel.add(balanceLabel);
         infoPanel.add(orderSummaryLabel);
         infoPanel.add(orderSummaryArea);
+        // TODO: properly handle shipping rate
+        final BigDecimal shippingRate = new BigDecimal("2.5");
+        infoPanel.add(new JLabel("Shipping rate: €" + shippingRate.toPlainString()));
         infoPanel.add(totalLabel);
         infoPanel.add(Box.createVerticalStrut(10));
         infoPanel.add(restaurantInfoPanel);
@@ -303,7 +306,7 @@ public final class ResMenu {
                     final int qty = (Integer) quantitySpinners[j].getValue();
                     total = total.add(menuData.get(j).getPrice().multiply(new BigDecimal(qty)));
                 }
-                totalLabel.setText("Total: $" + total.toPlainString());
+                totalLabel.setText("Total: €" + total.add(shippingRate).toPlainString());
             });
         }
     }
